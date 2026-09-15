@@ -1,4 +1,6 @@
 local root = assert(os.getenv("SESSION_TREE_SOURCE"))
+package.path = root .. "/plugin/?.lua;" .. package.path
+debug = nil
 local plugin = dofile(root .. "/plugin/init.lua")
 local wezterm = require("wezterm")
 local config = wezterm.config_builder()

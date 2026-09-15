@@ -1,6 +1,15 @@
-local directory = assert(debug.getinfo(1, "S").source:match("^@(.*/)"))
-package.path = directory .. "?.lua;" .. directory .. "?/init.lua;" .. package.path
 local wezterm = require("wezterm")
+if not package.searchpath("session_tree.options", package.path) then
+  for _, plugin in ipairs(wezterm.plugin.list()) do
+    local directory = plugin.plugin_dir .. "/plugin/"
+    local marker = io.open(directory .. "session_tree/options.lua", "r")
+    if marker then
+      marker:close()
+      package.path = directory .. "?.lua;" .. directory .. "?/init.lua;" .. package.path
+      break
+    end
+  end
+end
 local options = require("session_tree.options")
 local tree = require("session_tree.session_tree")
 local switcher = require("session_tree.switcher")
