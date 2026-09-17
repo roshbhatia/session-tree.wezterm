@@ -41,5 +41,16 @@ local tab = {
 }
 assert(format.tab_label(tab, 1, pane, "claude") == "claude")
 assert(format.tab_label(tab, 1, pane) == "tab 1")
+tab.get_title = function()
+  return opaque
+end
+assert(format.tab_label(tab, 1, pane, "claude") == "claude")
+assert(format.tab_label(tab, 1, pane) == "tab 1")
+local options = require("session_tree.options")
+options.configure({ passthrough_procs = { "zmx" } })
+assert(format.is_passthrough("zmx"))
+options.configure({ passthrough_procs = { "other" } })
+assert(not format.is_passthrough("zmx"))
+assert(format.is_passthrough("other"))
 assert(format.normalize_proc(".nvim-wrapped") == "nvim")
 return config

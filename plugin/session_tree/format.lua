@@ -104,7 +104,6 @@ M.cwd_aliases = {}
 -- Processes that only wrap another one, so a pane running one shows the
 -- process inside it. Named in config.json, not here: which multiplexer a host
 -- runs is not this module's to know.
-local passthrough_procs = {}
 do
   local ok, cfg = true, options.get()
   if ok and type(cfg) == "table" then
@@ -120,13 +119,6 @@ do
         end
         return a.alias < b.alias
       end)
-    end
-    if type(cfg.passthrough_procs) == "table" then
-      for _, name in ipairs(cfg.passthrough_procs) do
-        if type(name) == "string" and name ~= "" then
-          passthrough_procs[name:lower()] = true
-        end
-      end
     end
   end
 end
@@ -170,7 +162,13 @@ function M.is_passthrough(name)
   if type(name) ~= "string" or name == "" then
     return false
   end
-  return passthrough_procs[M.normalize_proc(name):lower()] == true
+  local normalized = M.normalize_proc(name):lower()
+  for _, process in ipairs(options.get().passthrough_procs or {}) do
+    if type(process) == "string" and process:lower() == normalized then
+      return true
+    end
+  end
+  return false
 end
 
 local function deepest_proc_name(info, depth)
@@ -204,15 +202,15 @@ function M.pane_proc(p, agent)
     end
     return nil
   end)
-  if ok and proc_name and proc_name ~= "" and passthrough_procs[proc_name] then
+  if ok and proc_name and proc_name ~= "" and M.is_passthrough(proc_name) then
     local ok_info, inner = pcall(function()
       return deepest_proc_name(p:get_foreground_process_info(), 8)
     end)
-    if ok_info and inner and inner ~= "" and not passthrough_procs[inner] then
+    if ok_info and inner and inner ~= "" and not M.is_passthrough(inner) then
       return inner
     end
   end
-  if ok and proc_name and proc_name ~= "" and not passthrough_procs[proc_name] then
+  if ok and proc_name and proc_name ~= "" and not M.is_passthrough(proc_name) then
     return proc_name
   end
   if agent and agent ~= "" then
@@ -229,7 +227,7 @@ end
 
 function M.tab_label(tab, index, active_pane, agent)
   local ok, title = pcall(function()
-    return tab:get_title() or ""
+    return M.normalize_proc(tab:get_title() or "")
   end)
   if ok and title and title ~= "" and not M.is_passthrough(title) then
     return title
