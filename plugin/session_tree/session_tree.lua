@@ -75,6 +75,9 @@ function M.build(deck_states)
           local pid = p:pane_id()
           local git = ui_panes.read_pane_record(pid)
           local status, reason, since, agent = ui_panes.agent_state(p, deck_states, git or false)
+          if resolved_active and pid == resolved_active:pane_id() then
+            tnode.title = ui_format.tab_label(tab, ti, resolved_active, agent)
+          end
           local rank = status and ui_panes.state_rank[status] or 0
           local repo, cwd = ui_panes.pane_repo(p)
           local domain = ui_panes.pane_domain(p)

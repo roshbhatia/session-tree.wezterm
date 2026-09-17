@@ -157,7 +157,11 @@ function M.normalize_proc(raw)
   if not raw or raw == "" then
     return raw
   end
-  return (raw:gsub("^%.", ""):gsub("%-wrapped$", ""))
+  local name = raw:gsub("^%.", ""):gsub("%-wrapped$", "")
+  if (#name == 32 or #name == 52 or #name == 64) and name:match("^[a-z0-9]+$") then
+    return ""
+  end
+  return name
 end
 
 ---@param name string|nil
@@ -190,6 +194,9 @@ local function deepest_proc_name(info, depth)
 end
 
 function M.pane_proc(p, agent)
+  if agent and agent ~= "" then
+    return agent
+  end
   local ok, proc_name = pcall(function()
     local proc = p:get_foreground_process_name()
     if proc and proc ~= "" then
@@ -220,7 +227,7 @@ function M.pane_proc(p, agent)
   return ""
 end
 
-function M.tab_label(tab, index, active_pane)
+function M.tab_label(tab, index, active_pane, agent)
   local ok, title = pcall(function()
     return tab:get_title() or ""
   end)
@@ -228,7 +235,7 @@ function M.tab_label(tab, index, active_pane)
     return title
   end
   if active_pane then
-    local proc = M.pane_proc(active_pane, nil)
+    local proc = M.pane_proc(active_pane, agent)
     if proc ~= "" then
       return proc
     end

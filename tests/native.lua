@@ -22,4 +22,24 @@ local output = rows(
   { name = "#ffffff", chrome = "#888888" }
 )
 assert(#output == 1 and output[1].id == "ws:default")
+local format = require("session_tree.format")
+local opaque = "1vck9ziv21pzp08093vb3nk4634nk760miia5116w45c2ncp4vqc"
+local pane = {
+  get_foreground_process_name = function()
+    return "/tmp/" .. opaque
+  end,
+  get_title = function()
+    return "shell prompt"
+  end,
+}
+assert(format.pane_proc(pane, "claude") == "claude")
+assert(format.pane_proc(pane, nil) == "")
+local tab = {
+  get_title = function()
+    return ""
+  end,
+}
+assert(format.tab_label(tab, 1, pane, "claude") == "claude")
+assert(format.tab_label(tab, 1, pane) == "tab 1")
+assert(format.normalize_proc(".nvim-wrapped") == "nvim")
 return config
