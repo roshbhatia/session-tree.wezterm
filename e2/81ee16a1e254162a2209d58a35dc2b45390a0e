@@ -1,0 +1,32 @@
+plugin/session_tree/launcher.lua
+  s_de8d39c3c56992::t_cb3bf6919034d3 101
+  s_4f071a0e882321::t_b9cc5d7a30cb59 160-163
+plugin/session_tree/switcher.lua
+  s_de8d39c3c56992::t_cb3bf6919034d3 390
+tests/native.lua
+  s_de8d39c3c56992::t_c3deb95d0f1ac8 56-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e281ee16a1e254162a2209d58a35dc2b45390a0e",
+  "prompts": {},
+  "sessions": {
+    "s_4f071a0e882321": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b1ad-fd81-7623-a5cb-84134d2450a7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Roshan Bhatia <rshnbhatia@gmail.com>"
+    },
+    "s_de8d39c3c56992": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ad25-3528-7c81-a954-276c13dcabf6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Roshan Bhatia <rshnbhatia@gmail.com>"
+    }
+  }
+}
