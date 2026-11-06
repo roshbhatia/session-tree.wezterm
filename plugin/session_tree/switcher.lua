@@ -387,7 +387,7 @@ function M.setup(config, wm, ctx)
   end
 
   if wm then
-    wm.session_enabled = true
+    wm.session_enabled = options.get().recovery == nil
     wm.session_restore_on_startup = false
     wm.session_state_dir = options.get().workspace_state_dir or wm.session_state_dir
     wm.workspace_switcher_sort = "recency"

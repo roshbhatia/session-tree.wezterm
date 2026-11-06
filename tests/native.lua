@@ -53,4 +53,12 @@ options.configure({ passthrough_procs = { "other" } })
 assert(not format.is_passthrough("zmx"))
 assert(format.is_passthrough("other"))
 assert(format.normalize_proc(".nvim-wrapped") == "nvim")
+options.configure({ local_domain = "unix" })
+local spawn = assert(require("session_tree.launcher").spawn({
+  kind = "spawn",
+  cwd = "/tmp",
+  command = {},
+  environment = {},
+}))
+assert(spawn.domain.DomainName == "unix", "picker bypassed the persistent local domain")
 return config

@@ -98,7 +98,7 @@ function M.spawn(plan)
   end
   return {
     cwd = plan.cwd,
-    domain = { DomainName = "local" },
+    domain = { DomainName = options.get().local_domain or "local" },
     args = #plan.command > 0 and plan.command or nil,
     set_environment_variables = plan.environment,
   }
@@ -157,12 +157,10 @@ local function launch(win, pane, provider, capability, name)
       registered[name] = true
       wezterm.GLOBAL.native_workspaces = registered
     end
-    actions.switch_to_workspace(
-      win,
-      pane,
-      name,
-      { cwd = (options.get().home or wezterm.home_dir or os.getenv("HOME")), domain = { DomainName = "local" } }
-    )
+    actions.switch_to_workspace(win, pane, name, {
+      cwd = (options.get().home or wezterm.home_dir or os.getenv("HOME")),
+      domain = { DomainName = options.get().local_domain or "local" },
+    })
     return
   end
   local plan, err = invoke(provider, capability, name)
