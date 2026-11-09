@@ -1,0 +1,30 @@
+plugin/session_tree/session_ops.lua
+  s_823df142a94f27::t_9a6092182607aa 1-161
+plugin/session_tree/sessions.lua
+  s_823df142a94f27::t_c0bb7ba693d4c5 128-140
+plugin/session_tree/switcher.lua
+  s_823df142a94f27::t_123fcd6495e7bc 531-532
+  s_823df142a94f27::t_bbd885eaa80280 479-485,487-512,514-518,520-527
+plugin/session_tree/launcher.lua
+  s_823df142a94f27::t_f577fc940c7957 54-66
+  s_823df142a94f27::t_92f863aa17dd7b 67-69
+tests/native.lua
+  s_823df142a94f27::t_f8c10960f65694 64-84
+  s_823df142a94f27::t_855032d421a7cf 85-95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "82eb933d2b31ecd8cdf9e8372e7ae47c5616ac57",
+  "prompts": {},
+  "sessions": {
+    "s_823df142a94f27": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e37c8c01-c1a2-4d87-94a7-b84ec196ba06",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Roshan Bhatia <rshnbhatia@gmail.com>"
+    }
+  }
+}
