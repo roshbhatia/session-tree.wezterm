@@ -51,6 +51,22 @@ function M.providers()
   return providers
 end
 
+function M.can_create(provider)
+  if provider.native then
+    return true
+  end
+  local file = provider.manifest and io.open(provider.manifest, "r")
+  if not file then
+    return false
+  end
+  local ok, manifest = pcall(wezterm.json_parse, file:read("*a"))
+  file:close()
+  return ok
+    and type(manifest) == "table"
+    and type(manifest.actions) == "table"
+    and manifest.actions["picker.create"] ~= nil
+end
+
 function M.prefetch()
   for _, provider in ipairs(settings().providers or {}) do
     catalog.load(settings().command or {}, provider.manifest)

@@ -5,6 +5,7 @@ local ui_badges = require("session_tree.adapters").badges
 local ui_panes = require("session_tree.adapters").panes
 local ui_sessions = require("session_tree.sessions")
 local launcher = require("session_tree.launcher")
+local session_ops = require("session_tree.session_ops")
 
 local M = {}
 
@@ -475,10 +476,60 @@ function M.setup(config, wm, ctx)
           end
         end),
       },
+      {
+        brief = "Session: rename current",
+        action = wezterm.action_callback(function(win, pane)
+          session_ops.prompt_name(win, pane, "Rename session " .. win:active_workspace(), session_ops.rename_current)
+        end),
+      },
+      {
+        brief = "Session: merge current into another",
+        action = wezterm.action_callback(function(win, pane)
+          session_ops.choose_session(win, pane, "Merge into session", false, session_ops.merge_into)
+        end),
+      },
+      {
+        brief = "Session: close others",
+        action = wezterm.action_callback(function(win, pane)
+          local here = win:active_workspace()
+          local others = {}
+          for _, name in ipairs(ui_sessions.active_names()) do
+            if name ~= here then
+              others[#others + 1] = name
+            end
+          end
+          if #others == 0 then
+            return
+          end
+          session_ops.confirm(win, pane, string.format("Close %d other session(s)?", #others), function(cwin, cpane)
+            for _, name in ipairs(others) do
+              local id = "ws:" .. name
+              close_session_target(cwin, cpane, id, { [id] = { workspace = name } })
+            end
+          end)
+        end),
+      },
+      {
+        brief = "Pane: move to session",
+        action = wezterm.action_callback(function(win, pane)
+          session_ops.choose_session(win, pane, "Move pane to session", true, session_ops.move_pane)
+        end),
+      },
+      {
+        brief = "Tab: move to session",
+        action = wezterm.action_callback(function(win, pane)
+          session_ops.choose_session(win, pane, "Move tab to session", true, session_ops.move_tab)
+        end),
+      },
+      {
+        brief = "Domain: detach current",
+        action = wezterm.action.DetachDomain("CurrentPaneDomain"),
+      },
     }
     for _, provider in ipairs(launcher.providers()) do
       entries[#entries + 1] = {
-        brief = "Session: " .. provider.name,
+        brief = (launcher.can_create(provider) and "Session: new or open from " or "Session: open from ")
+          .. provider.name,
         action = wezterm.action_callback(function(win, pane)
           launcher.open(win, pane, provider.key)
         end),

@@ -125,4 +125,17 @@ function M.last_active(name)
   return type(t) == "table" and t[name] or nil
 end
 
+-- Carries the slot and recency to the new name, so a rename does not reorder the chips.
+function M.rename(old, new)
+  for _, key in ipairs({ "workspace_slots", "workspace_last_active" }) do
+    local t = wezterm.GLOBAL[key]
+    if type(t) == "table" and t[old] ~= nil then
+      t[new] = t[old]
+      t[old] = nil
+      wezterm.GLOBAL[key] = t
+    end
+  end
+  slots_cache = { at = -1, slots = {} }
+end
+
 return M

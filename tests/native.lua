@@ -61,4 +61,36 @@ local spawn = assert(require("session_tree.launcher").spawn({
   environment = {},
 }))
 assert(spawn.domain.DomainName == "unix", "picker bypassed the persistent local domain")
+
+local session_ops = require("session_tree.session_ops")
+for _, name in ipairs({
+  "prompt_name",
+  "choose_session",
+  "confirm",
+  "rename_current",
+  "move_pane",
+  "move_tab",
+  "merge_into",
+}) do
+  assert(type(session_ops[name]) == "function", "session_ops." .. name .. " missing")
+end
+
+local sessions = require("session_tree.sessions")
+wezterm.GLOBAL.workspace_slots = { default = 1, old = 3 }
+wezterm.GLOBAL.workspace_last_active = { old = 42 }
+sessions.rename("old", "new")
+assert(wezterm.GLOBAL.workspace_slots.new == 3 and wezterm.GLOBAL.workspace_slots.old == nil, "rename lost the slot")
+assert(sessions.last_active("new") == 42 and sessions.last_active("old") == nil, "rename lost the recency")
+
+local launcher = require("session_tree.launcher")
+local manifest = os.getenv("HOME") .. "/creates.json"
+local file = assert(io.open(manifest, "w"))
+file:write('{"actions":{"picker.create":{},"picker.list":{}}}')
+file:close()
+assert(launcher.can_create({ manifest = manifest }), "manifest with picker.create reported no creation")
+assert(
+  not launcher.can_create({ manifest = os.getenv("HOME") .. "/absent.json" }),
+  "missing manifest reported creation"
+)
+assert(launcher.can_create({ native = true }), "native provider reported no creation")
 return config
