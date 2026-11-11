@@ -1,0 +1,23 @@
+plugin/session_tree/session_ops.lua
+  s_823df142a94f27::t_fecf9ddab3fb55 50-51,107,122-126,128-130,136-138,146,154-158,161-171,176-180
+plugin/session_tree/switcher.lua
+  s_823df142a94f27::t_54e1d6a5e682b8 12-14,16-19,21,127-130,255-301,426-431
+tests/native.lua
+  s_823df142a94f27::t_9c4c17adbf773a 11-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b2d779196993589446c01af131242d27da30fd46",
+  "prompts": {},
+  "sessions": {
+    "s_823df142a94f27": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e37c8c01-c1a2-4d87-94a7-b84ec196ba06",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Roshan Bhatia <rshnbhatia@gmail.com>"
+    }
+  }
+}
