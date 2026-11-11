@@ -123,11 +123,27 @@ function M.rename_current(win, _pane, name)
   M.rename(win, current(win), name)
 end
 
+-- Splits subject into the target session's first window beside its active pane, so
+-- the session keeps one window; a new session still gets a window of its own.
+local function join_session(subject, target)
+  local window = workspace_windows(target)[1]
+  local tab = window and window:active_tab()
+  local anchor = tab and tab:active_pane()
+  if not anchor then
+    return false
+  end
+  local ok = pcall(function()
+    anchor:split({ direction = "Right", move_pane_id = subject:pane_id() })
+  end)
+  return ok
+end
+
 -- subject defaults to the focused pane; the session tree passes the row's pane.
--- A pane can only leave as a new mux window, so an existing target session gains a window.
 function M.move_pane(win, pane, target, subject)
   subject = subject or pane
-  subject:move_to_new_window(target)
+  if not join_session(subject, target) then
+    subject:move_to_new_window(target)
+  end
   ui_actions.switch_to_workspace(win, pane, target)
 end
 
@@ -143,7 +159,9 @@ function M.move_tab(win, pane, target, subject)
   if #mux_window:tabs() == 1 then
     mux_window:set_workspace(target)
   elseif #tab:panes() == 1 then
-    subject:move_to_new_window(target)
+    if not join_session(subject, target) then
+      subject:move_to_new_window(target)
+    end
   else
     notify(win, "a split tab can only move when it is alone in its window")
     return
