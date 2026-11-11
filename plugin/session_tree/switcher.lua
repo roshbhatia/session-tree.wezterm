@@ -67,7 +67,15 @@ function M.session_tree_description()
   for _, provider in ipairs(launcher.providers()) do
     providers[#providers + 1] = provider.key .. " " .. provider.name
   end
-  return "  " .. table.concat(providers, "  ") .. "  |  j/k move  / filter  |  Enter open  x close  Esc quit"
+  local actions = {}
+  for _, action in ipairs(ROW_ACTIONS) do
+    actions[#actions + 1] = action.key .. " " .. action.hint
+  end
+  return "  "
+    .. table.concat(providers, "  ")
+    .. "  |  j/k move  / filter  |  Enter open  "
+    .. table.concat(actions, "  ")
+    .. "  Esc quit"
 end
 
 ---@param opts table
