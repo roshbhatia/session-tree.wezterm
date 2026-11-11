@@ -8,6 +8,13 @@ config.keys = { { key = "x", mods = "ALT", action = wezterm.action.Nop } }
 plugin.apply_to_config(config, {})
 assert(#config.keys == 1, "plugin added a default binding")
 assert(config.key_tables.session_tree_selector)
+local bound = {}
+for _, binding in ipairs(config.key_tables.session_tree_selector) do
+  bound[binding.key] = true
+end
+for _, key in ipairs({ "x", "t", "m", "r", "M" }) do
+  assert(bound[key], "the session tree has no row action on " .. key)
+end
 assert(plugin.open() and plugin.provider("!"))
 local tree = require("session_tree.session_tree").build({})
 assert(type(tree.workspaces) == "table")

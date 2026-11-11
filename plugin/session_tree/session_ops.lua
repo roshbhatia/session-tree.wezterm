@@ -47,8 +47,8 @@ function M.prompt_name(win, pane, description, callback)
 end
 
 -- Lists the other live sessions, most recent first, with an entry for a new name.
-function M.choose_session(win, pane, title, allow_new, callback)
-  local here = current(win)
+function M.choose_session(win, pane, title, allow_new, callback, exclude)
+  local here = exclude or current(win)
   local names = {}
   for _, name in ipairs(ui_sessions.active_names()) do
     if name ~= here then
@@ -104,8 +104,7 @@ function M.confirm(win, pane, title, callback)
   )
 end
 
-function M.rename_current(win, _pane, name)
-  local old = current(win)
+function M.rename(win, old, name)
   if not old or name == old then
     return
   end
@@ -120,16 +119,23 @@ function M.rename_current(win, _pane, name)
   notify(win, "renamed " .. old .. " to " .. name)
 end
 
+function M.rename_current(win, _pane, name)
+  M.rename(win, current(win), name)
+end
+
+-- subject defaults to the focused pane; the session tree passes the row's pane.
 -- A pane can only leave as a new mux window, so an existing target session gains a window.
-function M.move_pane(win, pane, target)
-  pane:move_to_new_window(target)
+function M.move_pane(win, pane, target, subject)
+  subject = subject or pane
+  subject:move_to_new_window(target)
   ui_actions.switch_to_workspace(win, pane, target)
 end
 
 -- WezTerm cannot move a tab. A tab alone in its window moves with its window;
 -- a single-pane tab moves as its pane; a split tab beside other tabs stays.
-function M.move_tab(win, pane, target)
-  local tab = pane:tab()
+function M.move_tab(win, pane, target, subject)
+  subject = subject or pane
+  local tab = subject:tab()
   local mux_window = tab and tab:window()
   if not mux_window then
     return
@@ -137,7 +143,7 @@ function M.move_tab(win, pane, target)
   if #mux_window:tabs() == 1 then
     mux_window:set_workspace(target)
   elseif #tab:panes() == 1 then
-    pane:move_to_new_window(target)
+    subject:move_to_new_window(target)
   else
     notify(win, "a split tab can only move when it is alone in its window")
     return
@@ -145,17 +151,33 @@ function M.move_tab(win, pane, target)
   ui_actions.switch_to_workspace(win, pane, target)
 end
 
-function M.merge_into(win, pane, target)
-  local here = current(win)
-  if not here or here == target then
+function M.break_out(win, pane, subject)
+  subject = subject or pane
+  local tab = subject:tab()
+  if tab and #tab:panes() < 2 then
+    notify(win, "the pane is already alone in its tab")
     return
   end
-  local windows = workspace_windows(here)
+  local moved = subject:move_to_new_tab()
+  if moved then
+    moved:activate()
+  end
+end
+
+function M.merge(win, pane, source, target)
+  if not source or source == target then
+    return
+  end
+  local windows = workspace_windows(source)
   for _, w in ipairs(windows) do
     w:set_workspace(target)
   end
   ui_actions.switch_to_workspace(win, pane, target)
-  notify(win, string.format("merged %s into %s (%d window%s)", here, target, #windows, #windows == 1 and "" or "s"))
+  notify(win, string.format("merged %s into %s (%d window%s)", source, target, #windows, #windows == 1 and "" or "s"))
+end
+
+function M.merge_into(win, pane, target)
+  M.merge(win, pane, current(win), target)
 end
 
 return M

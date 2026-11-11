@@ -9,10 +9,16 @@ local session_ops = require("session_tree.session_ops")
 
 local M = {}
 
-local SESSION_SELECTOR_ALPHABET = "1234567890abcdefghilmnopqrstuvwyzABCDEFGHILMNOPQRSTUVWYZ"
-local SESSION_TREE_ACTIONS = {
+-- Row-action keys stay out of the label alphabet: x close, t new tab, m move, r rename, M merge.
+local SESSION_SELECTOR_ALPHABET = "1234567890abcdefghilnopqsuvwyzABCDEFGHILNOPQRSTUVWYZ"
+local ROW_ACTIONS = {
   { id = "close-target", key = "x", hint = "close" },
+  { id = "new-tab", key = "t", hint = "new tab" },
+  { id = "move-to", key = "m", hint = "move" },
+  { id = "rename", key = "r", hint = "rename" },
+  { id = "merge", key = "M", hint = "merge" },
 }
+local SESSION_TREE_ACTIONS = ROW_ACTIONS
 local SESSION_SELECTOR_HELP = {
   { key = "j/k", hint = "nav" },
   {
@@ -118,7 +124,10 @@ function M.close_plan(opts)
 end
 
 function M.setup(config, wm, ctx)
-  SESSION_TREE_ACTIONS = { { id = "close-target", key = "x", hint = "close" } }
+  SESSION_TREE_ACTIONS = {}
+  for _, action in ipairs(ROW_ACTIONS) do
+    SESSION_TREE_ACTIONS[#SESSION_TREE_ACTIONS + 1] = action
+  end
   for _, provider in ipairs(launcher.providers()) do
     SESSION_TREE_ACTIONS[#SESSION_TREE_ACTIONS + 1] = {
       id = "provider:" .. provider.key,
@@ -242,6 +251,53 @@ function M.setup(config, wm, ctx)
   end
 
   local open_session_tree
+
+  -- Each row action works on the picked row, not the focused pane.
+  local function run_row_action(win, pane, action, id, by_id)
+    local rec = by_id[id]
+    if type(rec) ~= "table" then
+      return
+    end
+    local kind = id:match("^([^:]+):")
+    local subject
+    if kind == "pane" then
+      subject = wezterm.mux.get_pane(rec.pane_id)
+    elseif kind == "tab" then
+      local tab = wezterm.mux.get_tab(tonumber(id:match("^tab:(.+)$")))
+      subject = tab and tab:active_pane()
+    end
+    local function refuse(message)
+      win:toast_notification("Session", message, nil, 3000)
+    end
+    if action == "new-tab" then
+      if kind ~= "pane" or not subject then
+        return refuse("pick a pane to move into a new tab")
+      end
+      session_ops.break_out(win, pane, subject)
+    elseif action == "move-to" then
+      if not subject then
+        return refuse("pick a pane or tab to move")
+      end
+      local move = kind == "tab" and session_ops.move_tab or session_ops.move_pane
+      session_ops.choose_session(win, pane, "Move " .. kind .. " to session", true, function(cwin, cpane, target)
+        move(cwin, cpane, target, subject)
+      end, rec.workspace)
+    elseif action == "rename" then
+      if kind ~= "ws" then
+        return refuse("pick a session to rename")
+      end
+      session_ops.prompt_name(win, pane, "Rename session " .. rec.workspace, function(cwin, _, name)
+        session_ops.rename(cwin, rec.workspace, name)
+      end)
+    elseif action == "merge" then
+      if kind ~= "ws" then
+        return refuse("pick a session to merge")
+      end
+      session_ops.choose_session(win, pane, "Merge " .. rec.workspace .. " into", false, function(cwin, cpane, target)
+        session_ops.merge(cwin, cpane, rec.workspace, target)
+      end, rec.workspace)
+    end
+  end
 
   local function tree_window_id(win)
     local ok, id = pcall(function()
@@ -367,6 +423,12 @@ function M.setup(config, wm, ctx)
           inner_win:perform_action(wezterm.action.PopKeyTable, inner_pane)
         end
       end)
+      if pending and pending ~= "close-target" and not pending:match("^provider:") then
+        if id then
+          run_row_action(inner_win, inner_pane, pending, id, by_id)
+        end
+        return
+      end
       if pending == "close-target" then
         if not id then
           return
