@@ -9,10 +9,11 @@ local session_ops = require("session_tree.session_ops")
 
 local M = {}
 
--- Row-action keys stay out of the label alphabet: x close, t new tab, m move, r rename, M merge.
+-- Row-action keys stay out of the label alphabet: x confirmed close, X immediate close, t new tab, m move, r rename, M merge.
 local SESSION_SELECTOR_ALPHABET = "1234567890abcdefghilnopqsuvwyzABCDEFGHILNOPQRSTUVWYZ"
 local ROW_ACTIONS = {
   { id = "close-target", key = "x", hint = "close" },
+  { id = "close-target-immediate", key = "X", hint = "close immediately" },
   { id = "new-tab", key = "t", hint = "new tab" },
   { id = "move-to", key = "m", hint = "move" },
   { id = "rename", key = "r", hint = "rename" },
@@ -258,6 +259,37 @@ function M.setup(config, wm, ctx)
     return string.format("%s %d of %d panes in %s", plan.verb, killed, #plan.targets, plan.label), plan.reopen
   end
 
+  local function request_close_target(win, pane, id, by_id, confirm, completed)
+    local function close()
+      completed(close_session_target(win, pane, id, by_id))
+    end
+    if not confirm then
+      close()
+      return
+    end
+    local rec = by_id[id]
+    if type(rec) ~= "table" then
+      return
+    end
+    local kind = id:match("^([^:]+):")
+    local label = kind == "ws" and ("session " .. rec.workspace)
+      or kind == "tab" and ("tab " .. tostring(rec.tab_index or id:match("^tab:(.+)$")))
+      or kind == "pane" and ("pane " .. ui_badges.name(rec.pane_id))
+    if not label then
+      return
+    end
+    win:perform_action(
+      wezterm.action.Confirmation({
+        message = "Close " .. label .. "?",
+        action = wezterm.action_callback(close),
+        cancel = wezterm.action_callback(function()
+          completed(nil, true)
+        end),
+      }),
+      pane
+    )
+  end
+
   local open_session_tree
 
   -- Each row action works on the picked row, not the focused pane.
@@ -386,12 +418,13 @@ function M.setup(config, wm, ctx)
       if not close_id then
         return
       end
-      local close_notice, reopen = close_session_target(close_win, close_pane, close_id, by_id)
-      if reopen then
-        wezterm.time.call_after(0.15, function()
-          open_close_selector(close_win, close_pane, close_notice)
-        end)
-      end
+      request_close_target(close_win, close_pane, close_id, by_id, true, function(close_notice, reopen)
+        if reopen then
+          wezterm.time.call_after(0.15, function()
+            open_close_selector(close_win, close_pane, close_notice)
+          end)
+        end
+      end)
     end)
     win:perform_action(wezterm.action.InputSelector(options), pane)
   end
@@ -431,22 +464,28 @@ function M.setup(config, wm, ctx)
           inner_win:perform_action(wezterm.action.PopKeyTable, inner_pane)
         end
       end)
-      if pending and pending ~= "close-target" and not pending:match("^provider:") then
+      if
+        pending
+        and pending ~= "close-target"
+        and pending ~= "close-target-immediate"
+        and not pending:match("^provider:")
+      then
         if id then
           run_row_action(inner_win, inner_pane, pending, id, by_id)
         end
         return
       end
-      if pending == "close-target" then
+      if pending == "close-target" or pending == "close-target-immediate" then
         if not id then
           return
         end
-        local close_notice, reopen = close_session_target(inner_win, inner_pane, id, by_id)
-        if reopen then
-          wezterm.time.call_after(0.15, function()
-            open_session_tree(inner_win, inner_pane, filter, close_notice)
-          end)
-        end
+        request_close_target(inner_win, inner_pane, id, by_id, pending == "close-target", function(close_notice, reopen)
+          if reopen then
+            wezterm.time.call_after(0.15, function()
+              open_session_tree(inner_win, inner_pane, filter, close_notice)
+            end)
+          end
+        end)
         return
       end
       session_tree_dispatch(inner_win, inner_pane, id, by_id)

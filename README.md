@@ -21,7 +21,7 @@ The binding is optional. `sessions.open(filter)` and `sessions.provider(key)` re
 Filters are `all`, `sessions`, `agents`, and `blocked`. Agent filters require a status source.
 The command palette also exposes the tree, close picker, and session navigation.
 
-The tree uses `j/k` to move, `/` to filter, Enter to open, `x` to close, and Escape to cancel.
+The tree uses `j/k` to move, `/` to filter, Enter to open, `x` to close with confirmation, `Shift+x` to close immediately, and Escape to cancel.
 `!` opens native sessions, including the default workspace and new named sessions without project folders.
 Provider keys appear in configured order after `!`.
 

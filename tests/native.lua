@@ -12,11 +12,11 @@ local bound = {}
 for _, binding in ipairs(config.key_tables.session_tree_selector) do
   bound[binding.key] = true
 end
-for _, key in ipairs({ "x", "t", "m", "r", "M" }) do
+for _, key in ipairs({ "x", "X", "t", "m", "r", "M" }) do
   assert(bound[key], "the session tree has no row action on " .. key)
 end
 local description = require("session_tree.switcher").session_tree_description()
-for _, hint in ipairs({ "x close", "t new tab", "m move", "r rename", "M merge" }) do
+for _, hint in ipairs({ "x close", "X close immediately", "t new tab", "m move", "r rename", "M merge" }) do
   assert(description:find(hint, 1, true), "the session tree help omits " .. hint)
 end
 assert(plugin.open() and plugin.provider("!"))
