@@ -1,0 +1,35 @@
+README.md
+  s_eb67efbd9c807b::t_1f8c3054444c1f 24
+flake.nix
+  s_7028fc5da01072::t_8d18d6e2be668e 50
+plugin/session_tree/switcher.lua
+  s_7028fc5da01072::t_ab0f350e5e7083 14,64-66,123-126,249-279,361-367,407,411-417
+tests/native.lua
+  s_7028fc5da01072::t_724356196ee6fe 11-15
+tests/switcher.lua
+  s_7028fc5da01072::t_cc3dca76565c35 1-128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7b545c98d77f04a5fe963a4f2982cfb482b775ba",
+  "prompts": {},
+  "sessions": {
+    "s_7028fc5da01072": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1d0ac-4380-7023-8b2f-a382ea7a16c4",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Roshan Bhatia <rshnbhatia@gmail.com>"
+    },
+    "s_eb67efbd9c807b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1d145-c3ad-7d90-964b-3e8a08c942ad",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Roshan Bhatia <rshnbhatia@gmail.com>"
+    }
+  }
+}
