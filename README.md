@@ -22,6 +22,10 @@ Filters are `all`, `sessions`, `agents`, and `blocked`. Agent filters require a 
 The command palette also exposes the tree, close picker, and session navigation.
 
 The tree uses `j/k` to move, `/` to filter, Enter to open, `x` to close with confirmation, `Shift+x` to close immediately, and Escape to cancel.
+Provider and destination selectors also start with `j/k` navigation and `/` search.
+Set `picker.placement` to `"auto"`, `"pane"`, or `"window"`. Auto, the default,
+draws within a focused floating pane and covers the window from a normal pane.
+Placement requires the WezTerm fork's `InputSelector.scope` support.
 `!` opens native sessions, including the default workspace and new named sessions without project folders.
 Provider keys appear in configured order after `!`.
 

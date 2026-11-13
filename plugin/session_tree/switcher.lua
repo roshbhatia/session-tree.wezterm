@@ -57,6 +57,7 @@ function M.session_selector_options(choices, verb)
   -- register hidden actions, so each selector contains session targets only.
   return {
     choices = choices,
+    scope = options.selector_scope(),
     alphabet = SESSION_SELECTOR_ALPHABET,
     fuzzy = false,
     description = session_help(verb),
@@ -72,11 +73,10 @@ function M.session_tree_description()
   for _, action in ipairs(ROW_ACTIONS) do
     actions[#actions + 1] = action.key .. " " .. action.hint
   end
-  return "  "
+  return "Sessions | j/k move  / filter  Enter open  Esc quit  |  "
     .. table.concat(providers, "  ")
-    .. "  |  j/k move  / filter  |  Enter open  "
+    .. "  |  "
     .. table.concat(actions, "  ")
-    .. "  Esc quit"
 end
 
 ---@param opts table

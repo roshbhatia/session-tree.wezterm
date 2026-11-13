@@ -227,6 +227,7 @@ function M.open(win, pane, key, before_show)
     report(win, message)
     win:perform_action(
       wezterm.action.InputSelector({
+        scope = options.selector_scope(),
         title = "Unable to load " .. provider.name,
         description = message .. "  Esc quit",
         choices = {},
@@ -290,12 +291,15 @@ function M.open(win, pane, key, before_show)
       choices[#choices + 1] = { id = create_id, label = creation.label or "New session" }
     end
     if #choices == 0 then
-      choices[1] = { id = "sysinit:empty", label = "No sessions" }
+      choices[1] = { id = "sysinit:empty", label = "No items" }
     end
     win:perform_action(
       wezterm.action.InputSelector({
+        scope = options.selector_scope(),
         title = descriptor.title,
-        fuzzy = true,
+        fuzzy = false,
+        alphabet = "1234567890abcdefghilmnopqrstuvwxyzABCDEFGHILMNOPQRSTUVWXYZ",
+        description = descriptor.title .. " | j/k move  / filter  Enter open  Esc quit",
         choices = choices,
         action = wezterm.action_callback(function(inner_win, inner_pane, id)
           if wezterm.GLOBAL[state_key] ~= token then
@@ -351,6 +355,7 @@ function M.open(win, pane, key, before_show)
   loading = true
   win:perform_action(
     wezterm.action.InputSelector({
+      scope = options.selector_scope(),
       title = "Loading " .. provider.name,
       choices = {},
       alphabet = "",

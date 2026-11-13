@@ -58,6 +58,11 @@ end
 assert(format.tab_label(tab, 1, pane, "claude") == "claude")
 assert(format.tab_label(tab, 1, pane) == "tab 1")
 local options = require("session_tree.options")
+for placement, scope in pairs({ auto = "Auto", pane = "Pane", window = "Window" }) do
+  options.configure({ picker = { placement = placement } })
+  assert(require("session_tree.switcher").session_selector_options({}, "open").scope == scope)
+end
+assert(not pcall(options.configure, { picker = { placement = "invalid" } }), "invalid picker placement was accepted")
 options.configure({ passthrough_procs = { "zmx" } })
 assert(format.is_passthrough("zmx"))
 options.configure({ passthrough_procs = { "other" } })

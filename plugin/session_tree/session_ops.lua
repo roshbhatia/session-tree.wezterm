@@ -1,6 +1,7 @@
 local wezterm = require("wezterm")
 local ui_actions = require("session_tree.actions")
 local ui_sessions = require("session_tree.sessions")
+local options = require("session_tree.options")
 
 local M = {}
 
@@ -71,9 +72,11 @@ function M.choose_session(win, pane, title, allow_new, callback, exclude)
   end
   win:perform_action(
     wezterm.action.InputSelector({
+      scope = options.selector_scope(),
       title = title,
       choices = choices,
-      fuzzy = true,
+      fuzzy = false,
+      description = "j/k move  / filter  Enter choose  Esc quit",
       action = wezterm.action_callback(function(inner_win, inner_pane, id)
         if not id then
           return
@@ -92,6 +95,7 @@ end
 function M.confirm(win, pane, title, callback)
   win:perform_action(
     wezterm.action.InputSelector({
+      scope = options.selector_scope(),
       title = title,
       choices = { { id = "no", label = "No" }, { id = "yes", label = "Yes" } },
       action = wezterm.action_callback(function(inner_win, inner_pane, id)

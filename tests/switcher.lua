@@ -35,6 +35,9 @@ local wezterm = {
 }
 package.loaded.wezterm = wezterm
 package.loaded["session_tree.options"] = {
+  selector_scope = function()
+    return "Auto"
+  end,
   get = function()
     return {}
   end,
