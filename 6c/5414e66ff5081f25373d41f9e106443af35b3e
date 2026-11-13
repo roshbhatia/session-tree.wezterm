@@ -1,0 +1,35 @@
+tests/switcher.lua
+  s_7028fc5da01072::t_1d12ea4bf77129 38-40
+README.md
+  s_7028fc5da01072::t_fba728703aabd1 25-28
+plugin/session_tree/switcher.lua
+  s_7028fc5da01072::t_1d12ea4bf77129 60
+  s_7028fc5da01072::t_ec963330ba50d2 76
+  s_7028fc5da01072::t_223a08b2978d96 78
+plugin/session_tree/session_ops.lua
+  s_7028fc5da01072::t_1d12ea4bf77129 4
+  s_7028fc5da01072::t_bf4bc449f183a9 75
+tests/native.lua
+  s_7028fc5da01072::t_fba728703aabd1 61-65
+plugin/session_tree/options.lua
+  s_7028fc5da01072::t_1d12ea4bf77129 3,9-13
+plugin/session_tree/launcher.lua
+  s_7028fc5da01072::t_fe1da5adaa0092 294,298,300-301
+  s_7028fc5da01072::t_ec963330ba50d2 302
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6c5414e66ff5081f25373d41f9e106443af35b3e",
+  "prompts": {},
+  "sessions": {
+    "s_7028fc5da01072": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1d0ac-4380-7023-8b2f-a382ea7a16c4",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Roshan Bhatia <rshnbhatia@gmail.com>"
+    }
+  }
+}
