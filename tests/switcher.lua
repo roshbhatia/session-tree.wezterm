@@ -47,7 +47,7 @@ package.loaded["session_tree.adapters"] = { badges = { name = tostring }, panes 
 package.loaded["session_tree.sessions"] = {}
 package.loaded["session_tree.launcher"] = {
   providers = function()
-    return {}
+    return { { name = "task-queue", key = "&" } }
   end,
   cancel = function() end,
   prefetch = function() end,
@@ -102,10 +102,15 @@ switcher.setup(config, nil, {
   end,
 })
 local keys = {}
+local shifted = {}
 for _, binding in ipairs(config.key_tables.session_tree_selector) do
   keys[binding.key] = binding
+  if binding.mods == "SHIFT" then
+    shifted[binding.key] = true
+  end
 end
 assert(keys.x and keys.X, "both close bindings must be registered")
+assert(shifted.X and shifted.M and shifted["&"], "physical shifted shortcuts must retain their modifier")
 local function select(key)
   active_table = nil
   displayed = {}
@@ -129,3 +134,15 @@ assert(not displayed.confirmation, "Shift+x asked for confirmation")
 assert(#commands == 2 and commands[2][4] == "kill-pane", "Shift+x did not close immediately")
 assert(commands[2][5] == "--pane-id=2", "Shift+x closed the wrong pane")
 print("Session close confirmation, cancellation, and immediate close passed")
+
+active_table = nil
+switcher.open(window, pane)
+local previous_selector = displayed.selector
+keys.Escape.action(window, pane)
+switcher.open(window, pane)
+local current_selector = displayed.selector
+previous_selector.action(window, pane, nil)
+assert(active_table == "session_tree_selector", "a stale selector callback removed the current key table")
+current_selector.action(window, pane, nil)
+assert(active_table == nil, "the current selector did not release its key table")
+print("Selector callback ownership passed")

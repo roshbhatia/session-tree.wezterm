@@ -377,22 +377,28 @@ function M.setup(config, wm, ctx)
     },
   }
   for _, spec in ipairs(SESSION_TREE_ACTIONS) do
-    config.key_tables.session_tree_selector[#config.key_tables.session_tree_selector + 1] = {
-      key = spec.key,
-      mods = "NONE",
-      action = wezterm.action_callback(function(win, pane)
-        if spec.id:sub(1, 9) == "provider:" then
-          launcher.open(win, pane, spec.key, function()
-            if win:active_key_table() ~= "session_tree_selector" then
-              return false
-            end
-            win:perform_action(wezterm.action.PopKeyTable, pane)
-          end)
-        else
-          finish_session_tree_action(win, pane, spec.id)
-        end
-      end),
-    }
+    local modifiers = { "NONE" }
+    if spec.key:match("^[A-Z!@#$%%^&*()+?]$") then
+      modifiers[#modifiers + 1] = "SHIFT"
+    end
+    for _, mods in ipairs(modifiers) do
+      config.key_tables.session_tree_selector[#config.key_tables.session_tree_selector + 1] = {
+        key = spec.key,
+        mods = mods,
+        action = wezterm.action_callback(function(win, pane)
+          if spec.id:sub(1, 9) == "provider:" then
+            launcher.open(win, pane, spec.key, function()
+              if win:active_key_table() ~= "session_tree_selector" then
+                return false
+              end
+              win:perform_action(wezterm.action.PopKeyTable, pane)
+            end)
+          else
+            finish_session_tree_action(win, pane, spec.id)
+          end
+        end),
+      }
+    end
   end
 
   local function open_close_selector(win, pane, notice)
@@ -455,7 +461,15 @@ function M.setup(config, wm, ctx)
       title = title .. "  · " .. notice
     end
     options.title = title
+    local view_key = "session_tree_view:" .. tree_window_id(win)
+    wezterm.GLOBAL.session_tree_sequence = (wezterm.GLOBAL.session_tree_sequence or 0) + 1
+    local view_sequence = wezterm.GLOBAL.session_tree_sequence
+    wezterm.GLOBAL[view_key] = view_sequence
     options.action = wezterm.action_callback(function(inner_win, inner_pane, id, _label)
+      if wezterm.GLOBAL[view_key] ~= view_sequence then
+        return
+      end
+      wezterm.GLOBAL[view_key] = nil
       local window_id = tree_window_id(inner_win)
       local pending = wezterm.GLOBAL["session_tree_action:" .. window_id]
       wezterm.GLOBAL["session_tree_action:" .. window_id] = nil
