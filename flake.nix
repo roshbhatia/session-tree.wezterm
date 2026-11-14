@@ -48,6 +48,7 @@
           catalog = pkgs.runCommand "session-tree-catalog" { nativeBuildInputs = [ pkgs.lua5_4 ]; } ''
             lua ${./tests/catalog.lua} ${./plugin}
             lua ${./tests/switcher.lua} ${./plugin}
+            lua ${./tests/popup.lua} ${./plugin}
             touch $out
           '';
         }

@@ -209,6 +209,7 @@ function M.open(win, pane, key, before_show)
     report(win, "No provider registered for " .. tostring(key))
     return
   end
+  local popup = require("session_tree.popup")
   local target = win:mux_window():active_pane()
   if not target then
     return
@@ -216,6 +217,7 @@ function M.open(win, pane, key, before_show)
   if before_show and before_show() == false then
     return
   end
+  target = popup.begin(win, target)
   local state_key = "picker_view:" .. tostring(win:window_id())
   local token = (wezterm.GLOBAL.picker_sequence or 0) + 1
   wezterm.GLOBAL.picker_sequence = token
@@ -234,6 +236,7 @@ function M.open(win, pane, key, before_show)
         action = wezterm.action_callback(function()
           if wezterm.GLOBAL[state_key] == token then
             wezterm.GLOBAL[state_key] = nil
+            popup.finish(win)
           end
         end),
       }),
@@ -307,6 +310,7 @@ function M.open(win, pane, key, before_show)
           end
           wezterm.GLOBAL[state_key] = nil
           if not id then
+            popup.finish(inner_win)
             return
           end
           if result.can_create and id == create_id then
@@ -315,9 +319,11 @@ function M.open(win, pane, key, before_show)
                 description = creation.prompt or "Session name",
                 action = wezterm.action_callback(function(create_win, create_pane, name)
                   if name == nil then
+                    popup.finish(create_win)
                     return
                   end
                   name = name:match("^%s*(.-)%s*$")
+                  popup.finish(create_win)
                   if name == "" or not text(name) then
                     report(create_win, "Enter a session name")
                     return
@@ -334,7 +340,10 @@ function M.open(win, pane, key, before_show)
               inner_pane
             )
           elseif known[id] then
+            popup.finish(inner_win)
             launch(inner_win, inner_pane, provider, "picker.open", id)
+          else
+            popup.finish(inner_win)
           end
         end),
       }),
@@ -363,6 +372,7 @@ function M.open(win, pane, key, before_show)
       action = wezterm.action_callback(function()
         if loading and wezterm.GLOBAL[state_key] == token then
           wezterm.GLOBAL[state_key] = nil
+          popup.finish(win)
         end
       end),
     }),

@@ -6,6 +6,7 @@ local ui_panes = require("session_tree.adapters").panes
 local ui_sessions = require("session_tree.sessions")
 local launcher = require("session_tree.launcher")
 local session_ops = require("session_tree.session_ops")
+local popup = require("session_tree.popup")
 
 local M = {}
 
@@ -391,6 +392,7 @@ function M.setup(config, wm, ctx)
               if win:active_key_table() ~= "session_tree_selector" then
                 return false
               end
+              wezterm.GLOBAL["session_tree_view:" .. tree_window_id(win)] = nil
               win:perform_action(wezterm.action.PopKeyTable, pane)
             end)
           else
@@ -440,6 +442,7 @@ function M.setup(config, wm, ctx)
       return
     end
     launcher.cancel(win)
+    pane = popup.begin(win, pane)
     filter = filter or "all"
     local tree = ctx.tree()
     local colors = ctx.colors(win)
@@ -451,6 +454,7 @@ function M.setup(config, wm, ctx)
         target_choices = session_tree_choices(tree, by_id, "all", colors)
       end
       if #target_choices == 0 then
+        popup.finish(win)
         return
       end
     end
@@ -502,6 +506,7 @@ function M.setup(config, wm, ctx)
         end)
         return
       end
+      popup.finish(inner_win)
       session_tree_dispatch(inner_win, inner_pane, id, by_id)
     end)
     wezterm.GLOBAL["session_tree_action:" .. tree_window_id(win)] = nil
