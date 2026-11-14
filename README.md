@@ -28,7 +28,9 @@ creates or shows the tab's floating pane and resets it to `picker.float_size`
 (default `0.6`) of the tab's width and height. It preserves the float's process
 and restores the invoking pane when dismissed. Auto, the plugin default,
 draws within a focused floating pane and covers the window from a normal pane.
-Placement requires the WezTerm fork's `InputSelector.scope` support.
+Placement requires the WezTerm fork's `InputSelector.scope` support. Float
+placement also requires `ActivatePaneById` to activate, resize, and present the
+picker in one native action batch without intervening mux updates.
 `!` opens native sessions, including the default workspace and new named sessions without project folders.
 Provider keys appear in configured order after `!`.
 

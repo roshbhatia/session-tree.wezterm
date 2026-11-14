@@ -434,7 +434,7 @@ function M.setup(config, wm, ctx)
         end
       end)
     end)
-    win:perform_action(wezterm.action.InputSelector(options), pane)
+    win:perform_action(popup.selector(win, options), pane)
   end
 
   open_session_tree = function(win, pane, filter, notice)
@@ -511,7 +511,7 @@ function M.setup(config, wm, ctx)
     end)
     wezterm.GLOBAL["session_tree_action:" .. tree_window_id(win)] = nil
     win:perform_action(wezterm.action.ActivateKeyTable({ name = "session_tree_selector", one_shot = false }), pane)
-    win:perform_action(wezterm.action.InputSelector(options), pane)
+    win:perform_action(popup.selector(win, options), pane)
     launcher.prefetch()
   end
 

@@ -228,7 +228,7 @@ function M.open(win, pane, key, before_show)
     loading = false
     report(win, message)
     win:perform_action(
-      wezterm.action.InputSelector({
+      popup.selector(win, {
         scope = options.selector_scope(),
         title = "Unable to load " .. provider.name,
         description = message .. "  Esc quit",
@@ -252,7 +252,7 @@ function M.open(win, pane, key, before_show)
       return
     end
     local current = win:mux_window():active_pane()
-    if not current or current:pane_id() ~= target:pane_id() then
+    if not current or (current:pane_id() ~= target:pane_id() and not popup.pending(win, target)) then
       wezterm.GLOBAL[state_key] = nil
       return
     end
@@ -297,7 +297,7 @@ function M.open(win, pane, key, before_show)
       choices[1] = { id = "sysinit:empty", label = "No items" }
     end
     win:perform_action(
-      wezterm.action.InputSelector({
+      popup.selector(win, {
         scope = options.selector_scope(),
         title = descriptor.title,
         fuzzy = false,
@@ -363,7 +363,7 @@ function M.open(win, pane, key, before_show)
   end
   loading = true
   win:perform_action(
-    wezterm.action.InputSelector({
+    popup.selector(win, {
       scope = options.selector_scope(),
       title = "Loading " .. provider.name,
       choices = {},
