@@ -1,0 +1,34 @@
+plugin/session_tree/popup.lua
+  s_7028fc5da01072::t_f61ae282ab1bc6 16
+  s_7028fc5da01072::t_c767aa4881851b 30
+  s_7028fc5da01072::t_920b60876e69d3 21,23,25,29,31,34,44,72-74
+  s_7028fc5da01072::t_805dfbce2f0113 58,60-64
+  s_7028fc5da01072::t_f9e5630e4ec679 41,48-57
+  s_7028fc5da01072::t_f09296b86fba0a 59
+plugin/session_tree/launcher.lua
+  s_7028fc5da01072::t_805dfbce2f0113 255
+tests/popup.lua
+  s_7028fc5da01072::t_805dfbce2f0113 108-110
+  s_7028fc5da01072::t_b5458bcbfc37aa 43,82-86,99-100
+  s_7028fc5da01072::t_f61ae282ab1bc6 116,122,126,128-131,133,137,141,143,148-149
+README.md
+  s_7028fc5da01072::t_d9d7c720461373 31-33
+plugin/session_tree/switcher.lua
+  s_7028fc5da01072::t_adf1c7c88fe786 437,514
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2c37e3f942ab50cb4186f42df43bb22eec1995df",
+  "prompts": {},
+  "sessions": {
+    "s_7028fc5da01072": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1d0ac-4380-7023-8b2f-a382ea7a16c4",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Roshan Bhatia <rshnbhatia@gmail.com>"
+    }
+  }
+}
