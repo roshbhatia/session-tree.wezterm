@@ -49,6 +49,7 @@
             lua ${./tests/catalog.lua} ${./plugin}
             lua ${./tests/switcher.lua} ${./plugin}
             lua ${./tests/popup.lua} ${./plugin}
+            lua ${./tests/tree.lua} ${./plugin}
             touch $out
           '';
         }

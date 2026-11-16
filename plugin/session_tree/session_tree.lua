@@ -85,6 +85,7 @@ function M.build(deck_states)
           ws.domain = merge_domain(ws.domain, domain)
           local rec = {
             pane_id = pid,
+            is_floating = info.is_floating == true,
             window_id = window_id,
             tab_id = tnode.tab_id,
             workspace = workspace,

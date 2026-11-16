@@ -24,13 +24,18 @@ The command palette also exposes the tree, close picker, and session navigation.
 The tree uses `j/k` to move, `/` to filter, Enter to open, `x` to close with confirmation, `Shift+x` to close immediately, and Escape to cancel.
 Provider and destination selectors also start with `j/k` navigation and `/` search.
 Set `picker.placement` to `"float"`, `"auto"`, `"pane"`, or `"window"`. Float
-creates or shows the tab's floating pane and resets it to `picker.float_size`
+creates the tab's floating pane on first use, or reuses it, and resets it to
+`picker.float_size`
 (default `0.6`) of the tab's width and height. It preserves the float's process
 and restores the invoking pane when dismissed. Auto, the plugin default,
 draws within a focused floating pane and covers the window from a normal pane.
 Placement requires the WezTerm fork's `InputSelector.scope` support. Float
 placement also requires `ActivatePaneById` to activate, resize, and present the
 picker in one native action batch without intervening mux updates.
+
+Pane rows show `F` for floating panes, including the agent and attention views.
+Refreshing the tree never creates a float. Closing a float removes its row;
+the next float-based picker creates one only when it opens.
 `!` opens native sessions, including the default workspace and new named sessions without project folders.
 Provider keys appear in configured order after `!`.
 

@@ -101,7 +101,10 @@ local function present()
   end
 end
 active = normal
+options.configure({ picker = { placement = "auto" } })
+assert(popup.begin(window, normal) == normal and spawned == 0, "auto placement created an unused float")
 options.configure({ picker = { placement = "float" } })
+assert(spawned == 0 and existing == nil, "configuration eagerly created a float")
 assert(options.selector_scope() == "Pane")
 assert(popup.begin(window, normal) == floating and spawned == 1)
 assert(active == normal and #actions == 0, "preparing a popup changed focus before presentation")
@@ -142,8 +145,10 @@ present()
 assert(not zoomed)
 popup.finish(window)
 assert(active == normal and zoomed, "dismissal did not restore the original zoom")
+local previous_spawned = spawned
 existing = nil
 popup.begin(window, normal)
+assert(spawned == previous_spawned + 1, "a closed float was not recreated on demand")
 assert(not zoomed, "cold float creation did not unzoom first")
 present()
 popup.finish(window)

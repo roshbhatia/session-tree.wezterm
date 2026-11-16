@@ -19,6 +19,12 @@ function M.new(ctx)
     append_host(r, colors, host, is_local, stale)
   end
 
+  local function append_float_marker(r, colors, rec)
+    if rec.is_floating then
+      r:append(nil, colors.chrome, "F ")
+    end
+  end
+
   local function attn_row(rec, now, colors)
     local sc = ui_format.status_color(rec.status, colors) or colors.idle
     local icon = ui_format.state_icons[rec.status] or "●"
@@ -33,6 +39,7 @@ function M.new(ctx)
     end
     r:append(nil, sc, icon .. " ")
     append_domain(r, colors, rec.domain)
+    append_float_marker(r, colors, rec)
     local crumb = rec.workspace
     if rec.tab_title ~= "" then
       crumb = crumb .. " · " .. rec.tab_title
@@ -214,6 +221,7 @@ function M.new(ctx)
             pane_r:append(nil, colors.chrome, "> ")
           end
           append_domain(pane_r, colors, rec.domain)
+          append_float_marker(pane_r, colors, rec)
           local pane_dp = ui_format.smart_path(rec.cwd)
           if pane_dp == "" then
             pane_dp = rec.repo
