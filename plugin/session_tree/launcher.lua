@@ -150,9 +150,6 @@ local function native_catalog()
       items[#items + 1] = { id = name, segments = { { text = name, role = "name" } } }
     end
   end
-  table.sort(items, function(a, b)
-    return a.id < b.id
-  end)
   return {
     descriptor = { title = "WezTerm sessions", icon = "", create = { label = "New session", prompt = "Session name" } },
     listed = { items = items },

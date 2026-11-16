@@ -27,7 +27,7 @@ local rows = require("session_tree.tree_rows").new({
   icons = { session = "", tab = "", attn = "" },
 })
 local output = rows(
-  { workspaces = { { name = "default", tabs = {}, window_count = 1 } } },
+  { workspaces = { { name = "default", index = 1, tabs = {}, window_count = 1 } } },
   {},
   "all",
   { name = "#ffffff", chrome = "#888888" }

@@ -13,10 +13,10 @@ function M.ordered_windows()
   return windows
 end
 
-function M.active_names()
+local function live_names()
   local seen, names = {}, {}
   pcall(function()
-    for _, win in ipairs(wezterm.mux.all_windows()) do
+    for _, win in ipairs(M.ordered_windows()) do
       local n = win:get_workspace()
       if n and n ~= "" and not seen[n] then
         seen[n] = true
@@ -27,13 +27,12 @@ function M.active_names()
   return names
 end
 
-local function compute_slots()
+local function compute_slots(names)
   local prev = wezterm.GLOBAL.workspace_slots
   if type(prev) ~= "table" then
     prev = {}
   end
 
-  local names = M.active_names()
   if #names == 0 then
     return prev
   end
@@ -58,14 +57,10 @@ local function compute_slots()
       fresh[#fresh + 1] = n
     end
   end
-  table.sort(fresh)
   local probe = 1
   for _, name in ipairs(fresh) do
-    while probe <= M.MAX_SLOT and taken[probe] do
+    while taken[probe] do
       probe = probe + 1
-    end
-    if probe > M.MAX_SLOT then
-      break
     end
     slots[name] = probe
     taken[probe] = true
@@ -94,14 +89,17 @@ local function compute_slots()
   return slots
 end
 
-local slots_cache = { at = -1, slots = {} }
-
 function M.slots()
-  local now = os.time()
-  if now ~= slots_cache.at then
-    slots_cache = { at = now, slots = compute_slots() }
-  end
-  return slots_cache.slots
+  return compute_slots(live_names())
+end
+
+function M.active_names()
+  local names = live_names()
+  local slots = compute_slots(names)
+  table.sort(names, function(a, b)
+    return slots[a] < slots[b]
+  end)
+  return names
 end
 
 local touch_throttle = {}
@@ -135,7 +133,6 @@ function M.rename(old, new)
       wezterm.GLOBAL[key] = t
     end
   end
-  slots_cache = { at = -1, slots = {} }
 end
 
 return M

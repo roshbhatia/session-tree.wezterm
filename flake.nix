@@ -50,6 +50,7 @@
             lua ${./tests/switcher.lua} ${./plugin}
             lua ${./tests/popup.lua} ${./plugin}
             lua ${./tests/tree.lua} ${./plugin}
+            lua ${./tests/sessions.lua} ${./plugin}
             touch $out
           '';
         }

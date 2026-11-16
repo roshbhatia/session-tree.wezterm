@@ -133,16 +133,12 @@ function M.new(ctx)
         end
       end
       table.sort(live, function(a, b)
-        if (a.last_active or 0) ~= (b.last_active or 0) then
-          return (a.last_active or 0) > (b.last_active or 0)
-        end
-        return a.name < b.name
+        return a.index < b.index
       end)
-      for i, ws in ipairs(live) do
+      for _, ws in ipairs(live) do
         local sc = ui_format.status_color(ws.status, colors)
-        local qs = i <= 9 and tostring(i) or string.char(96 + i - 9)
         local r = ctx.ribbon.new("ws")
-        r:append(nil, colors.chrome, qs .. "  ")
+        r:append(nil, colors.chrome, "[" .. tostring(ws.index) .. "] ")
         r:append(nil, sc or colors.ws_live, ctx.icons.session .. " ")
         append_domain(r, colors, ws.domain, ws.stale)
         r:append(nil, colors.name, ws.display_name or ws.name, "Bold")
@@ -165,15 +161,13 @@ function M.new(ctx)
       end
     end
     table.sort(live_sorted, function(a, b)
-      if (a.last_active or 0) ~= (b.last_active or 0) then
-        return (a.last_active or 0) > (b.last_active or 0)
-      end
-      return a.name < b.name
+      return a.index < b.index
     end)
 
     for _, ws in ipairs(live_sorted) do
       local sc = ui_format.status_color(ws.status, colors)
       local ws_r = ctx.ribbon.new("ws")
+      ws_r:append(nil, colors.chrome, "[" .. tostring(ws.index) .. "] ")
       ws_r:append(nil, sc or colors.ws_live, ctx.icons.session .. " ")
       append_domain(ws_r, colors, ws.domain, ws.stale)
       ws_r:append(nil, colors.name, ws.display_name or ws.name, { "Bold", "Single" })

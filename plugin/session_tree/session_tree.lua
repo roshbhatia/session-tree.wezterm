@@ -18,6 +18,7 @@ local function merge_domain(current, domain)
 end
 
 function M.build(deck_states)
+  local slots = ui_sessions.slots()
   local workspaces = {}
   local ws_index = {}
   local attention = {}
@@ -30,6 +31,7 @@ function M.build(deck_states)
       if not ws then
         ws = {
           name = workspace,
+          index = slots[workspace],
           display_name = workspace,
           dormant = false,
           rank = 0,

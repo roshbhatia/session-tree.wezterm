@@ -21,6 +21,13 @@ The binding is optional. `sessions.open(filter)` and `sessions.provider(key)` re
 Filters are `all`, `sessions`, `agents`, and `blocked`. Agent filters require a status source.
 The command palette also exposes the tree, close picker, and session navigation.
 
+Sessions follow their stable numeric index, matching the session chips and
+relative navigation. Existing indexes survive renames and host-label changes.
+New sessions take the first free index in window-creation order; closing a
+session does not renumber the others. Default keeps index 1. Indexes continue
+past 9, while the direct digit shortcuts remain 1–9. Host tags describe the
+panes' current domains and do not determine session order.
+
 The tree uses `j/k` to move, `/` to filter, Enter to open, `x` to close with confirmation, `Shift+x` to close immediately, and Escape to cancel.
 Provider and destination selectors also start with `j/k` navigation and `/` search.
 Set `picker.placement` to `"float"`, `"auto"`, `"pane"`, or `"window"`. Float

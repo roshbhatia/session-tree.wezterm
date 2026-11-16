@@ -47,7 +47,7 @@ function M.prompt_name(win, pane, description, callback)
   )
 end
 
--- Lists the other live sessions, most recent first, with an entry for a new name.
+-- Lists the other live sessions by stable index, with an entry for a new name.
 function M.choose_session(win, pane, title, allow_new, callback, exclude)
   local here = exclude or current(win)
   local names = {}
@@ -56,9 +56,6 @@ function M.choose_session(win, pane, title, allow_new, callback, exclude)
       names[#names + 1] = name
     end
   end
-  table.sort(names, function(a, b)
-    return (ui_sessions.last_active(a) or 0) > (ui_sessions.last_active(b) or 0)
-  end)
   local choices = {}
   if allow_new then
     choices[#choices + 1] = { id = "new:", label = "+ New session" }
