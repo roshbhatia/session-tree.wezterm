@@ -19,7 +19,8 @@
         {
           runner = pkgs.writeShellApplication {
             name = "wezterm-picker-call";
-            text = ''exec ${pkgs.python3}/bin/python3 ${./scripts/picker-call.py} "$@"'';
+            runtimeInputs = [ pkgs.coreutils ];
+            text = ''exec ${pkgs.nushell}/bin/nu --no-config-file ${./scripts/picker-call.nu} "$@"'';
           };
           default = pkgs.runCommand "session-tree-wezterm" { } "mkdir -p $out; cp -r ${./plugin} $out/plugin";
         }
@@ -40,9 +41,9 @@
             touch $out
           '';
           provider =
-            pkgs.runCommand "session-tree-provider-tests" { nativeBuildInputs = [ pkgs.python3 ]; }
+            pkgs.runCommand "session-tree-provider-tests" { nativeBuildInputs = [ pkgs.nushell pkgs.coreutils ]; }
               ''
-                python3 -m unittest discover -s ${self}/tests -p 'test_*.py'
+                nu --no-config-file ${./tests/provider.nu} ${./scripts/picker-call.nu} ${./tests/provider-fixture.nu}
                 touch $out
               '';
           catalog = pkgs.runCommand "session-tree-catalog" { nativeBuildInputs = [ pkgs.lua5_4 ]; } ''
@@ -67,6 +68,9 @@
               pkgs.stylua
               pkgs.nixfmt
               pkgs.python3
+              pkgs.nushell
+              pkgs.nufmt
+              pkgs.coreutils
               pkgs.wezterm
             ];
           };

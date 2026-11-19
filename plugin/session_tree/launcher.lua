@@ -4,6 +4,7 @@ local options = require("session_tree.options")
 local actions = require("session_tree.actions")
 local catalog = require("session_tree.catalog")
 local sessions = require("session_tree.sessions")
+local native_sessions = require("session_tree.native_sessions")
 local M = {}
 
 local function array(value)
@@ -144,34 +145,134 @@ end
 
 local function native_catalog()
   local registered = wezterm.GLOBAL.native_workspaces or {}
-  local items = {}
+  local saved = native_sessions.list()
+  local items, seen = {}, {}
   for _, name in ipairs(sessions.active_names()) do
-    if name == "default" or registered[name] then
+    if name == "default" or registered[name] or saved[name] then
+      if registered[name] and not saved[name] then
+        native_sessions.register(name, options.get().home or wezterm.home_dir)
+      end
       items[#items + 1] = { id = name, segments = { { text = name, role = "name" } } }
+      seen[name] = true
     end
   end
+  local inactive = {}
+  for name in pairs(saved) do
+    if not seen[name] then
+      inactive[#inactive + 1] = name
+    end
+  end
+  table.sort(inactive)
+  for _, name in ipairs(inactive) do
+    items[#items + 1] = {
+      id = name,
+      segments = { { text = name, role = "name" }, { text = "saved", role = "detail" } },
+    }
+  end
   return {
-    descriptor = { title = "WezTerm sessions", icon = "", create = { label = "New session", prompt = "Session name" } },
+    descriptor = {
+      title = "WezTerm sessions",
+      icon = "",
+      persistence = "always",
+      create = { label = "New session", prompt = "Session name" },
+      delete = { prompt = "Close all terminals in this WezTerm session and delete its saved state?" },
+    },
     listed = { items = items },
     can_create = true,
+    can_rename = true,
+    can_delete = true,
   }
+end
+
+local function manage(win, pane, provider, capability, id, name)
+  if provider.native then
+    if capability == "picker.rename" then
+      local live = false
+      for _, existing in ipairs(sessions.active_names()) do
+        live = live or existing == id
+      end
+      if live then
+        require("session_tree.session_ops").rename(win, id, name)
+      else
+        for _, existing in ipairs(sessions.active_names()) do
+          if existing == name and name ~= id then
+            report(win, "Session already exists: " .. name)
+            return
+          end
+        end
+        local renamed, err = native_sessions.rename(id, name)
+        if not renamed then
+          report(win, err)
+          return
+        end
+        if options.get().recovery then
+          options.get().recovery.rename(id, name)
+        end
+      end
+    else
+      local binary = (wezterm.executable_dir or "") .. "/wezterm"
+      local panes, err = command.json({ binary, "cli", "--no-auto-start", "list", "--format=json" })
+      if not panes then
+        report(win, err)
+        return
+      end
+      if win:active_workspace() == id then
+        actions.switch_to_workspace(win, pane, "default")
+      end
+      for _, entry in ipairs(panes) do
+        if entry.workspace == id then
+          local ok, _, failure =
+            wezterm.run_child_process({ binary, "cli", "--no-auto-start", "kill-pane", "--pane-id=" .. entry.pane_id })
+          if not ok then
+            report(win, failure)
+            return
+          end
+        end
+      end
+      native_sessions.delete(id)
+      if options.get().recovery then
+        options.get().recovery.forget(id)
+      end
+    end
+  else
+    local argument = capability == "picker.rename" and wezterm.json_encode({ id = id, name = name }) or id
+    local result, err = invoke(provider, capability, argument)
+    if not result then
+      report(win, err)
+      return
+    end
+    if result.kind ~= "updated" then
+      report(win, "Provider returned an unsupported lifecycle result")
+      return
+    end
+    catalog.invalidate(settings().command or {}, provider.manifest)
+  end
+  M.open(win, pane, provider.key)
 end
 
 local function launch(win, pane, provider, capability, name)
   if provider.native then
     if capability == "picker.create" then
+      local saved = native_sessions.list()
+      if saved[name] then
+        report(win, "Session already exists: " .. name)
+        return
+      end
       for _, existing in ipairs(sessions.active_names()) do
         if existing == name then
           report(win, "Session already exists: " .. name)
           return
         end
       end
-      local registered = wezterm.GLOBAL.native_workspaces or {}
-      registered[name] = true
-      wezterm.GLOBAL.native_workspaces = registered
+      native_sessions.register(name, options.get().home or wezterm.home_dir)
+    end
+    local saved = native_sessions.list()[name]
+    local recovery = options.get().recovery
+    if capability == "picker.open" and recovery then
+      recovery.restore(name, true)
     end
     actions.switch_to_workspace(win, pane, name, {
-      cwd = (options.get().home or wezterm.home_dir or os.getenv("HOME")),
+      cwd = saved and saved.cwd or (options.get().home or wezterm.home_dir or os.getenv("HOME")),
       domain = { DomainName = options.get().local_domain or "local" },
     })
     return
@@ -287,8 +388,25 @@ function M.open(win, pane, key, before_show)
       failed("Provider returned invalid creation labels")
       return
     end
+    local deletion = type(descriptor.delete) == "table" and descriptor.delete or {}
+    if deletion.prompt ~= nil and not text(deletion.prompt) then
+      failed("Provider returned an invalid deletion prompt")
+      return
+    end
     if result.can_create then
       choices[#choices + 1] = { id = create_id, label = creation.label or "New session" }
+    end
+    local management = {}
+    for _, operation in ipairs({ { "rename", result.can_rename }, { "delete", result.can_delete } }) do
+      if operation[2] then
+        local action_id = "sysinit:" .. operation[1]
+        while known[action_id] or action_id == create_id do
+          action_id = action_id .. ":"
+        end
+        management[action_id] = operation[1]
+        choices[#choices + 1] =
+          { id = action_id, label = operation[1] == "rename" and "Rename session…" or "Delete session…" }
+      end
     end
     if #choices == 0 then
       choices[1] = { id = "sysinit:empty", label = "No items" }
@@ -299,7 +417,9 @@ function M.open(win, pane, key, before_show)
         title = descriptor.title,
         fuzzy = false,
         alphabet = "1234567890abcdefghilmnopqrstuvwxyzABCDEFGHILMNOPQRSTUVWXYZ",
-        description = descriptor.title .. " | j/k move  / filter  Enter open  Esc quit",
+        description = descriptor.title
+          .. (descriptor.persistence == "always" and " | saved automatically" or "")
+          .. " | j/k move  / filter  Enter open  Esc quit",
         choices = choices,
         action = wezterm.action_callback(function(inner_win, inner_pane, id)
           if wezterm.GLOBAL[state_key] ~= token then
@@ -310,7 +430,53 @@ function M.open(win, pane, key, before_show)
             popup.finish(inner_win)
             return
           end
-          if result.can_create and id == create_id then
+          if management[id] then
+            local operation = management[id]
+            local targets = {}
+            for _, item in ipairs(listed.items) do
+              if not provider.native or item.id ~= "default" then
+                targets[#targets + 1] = { id = item.id, label = M.label(item, descriptor) }
+              end
+            end
+            inner_win:perform_action(
+              popup.selector(inner_win, {
+                scope = options.selector_scope(),
+                title = operation == "rename" and "Rename session" or "Delete session",
+                choices = targets,
+                action = wezterm.action_callback(function(select_win, select_pane, selected)
+                  if not selected then
+                    popup.finish(select_win)
+                    return
+                  end
+                  local ops = require("session_tree.session_ops")
+                  if operation == "rename" then
+                    ops.prompt_name(
+                      select_win,
+                      select_pane,
+                      "Rename " .. selected .. " as",
+                      function(rename_win, rename_pane, name)
+                        popup.finish(rename_win)
+                        manage(rename_win, rename_pane, provider, "picker.rename", selected, name)
+                      end,
+                      popup.finish
+                    )
+                  else
+                    ops.confirm(
+                      select_win,
+                      select_pane,
+                      selected .. ": " .. (deletion.prompt or "Delete this item through its provider?"),
+                      function(delete_win, delete_pane)
+                        popup.finish(delete_win)
+                        manage(delete_win, delete_pane, provider, "picker.delete", selected)
+                      end,
+                      popup.finish
+                    )
+                  end
+                end),
+              }),
+              inner_pane
+            )
+          elseif result.can_create and id == create_id then
             inner_win:perform_action(
               wezterm.action.PromptInputLine({
                 description = creation.prompt or "Session name",

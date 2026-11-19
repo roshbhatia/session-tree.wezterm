@@ -112,4 +112,20 @@ assert(
   "missing manifest reported creation"
 )
 assert(launcher.can_create({ native = true }), "native provider reported no creation")
+options.configure({ workspace_state_dir = os.getenv("HOME") .. "/session-state" })
+local registry = require("session_tree.native_sessions")
+registry.register("persistent", os.getenv("HOME"))
+package.loaded["session_tree.native_sessions"] = nil
+registry = require("session_tree.native_sessions")
+assert(registry.list().persistent.cwd == os.getenv("HOME"), "native session was lost on reload")
+registry.rename("persistent", "renamed")
+assert(registry.list().renamed and not registry.list().persistent, "native rename left the previous name")
+assert(wezterm.GLOBAL.native_workspaces.renamed and not wezterm.GLOBAL.native_workspaces.persistent)
+registry.register("occupied", os.getenv("HOME"))
+assert(not registry.rename("renamed", "occupied"), "rename replaced an existing saved session")
+assert(registry.list().renamed and registry.list().occupied, "a refused rename changed registrations")
+assert(not pcall(registry.register, "bad\nname", "/tmp"), "invalid session name was accepted")
+registry.delete("renamed")
+assert(not registry.list().renamed, "deleted native session remains registered")
+assert(not pcall(registry.delete, "default"), "default session was deleted")
 return config

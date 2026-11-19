@@ -10,6 +10,10 @@ function M.peek(command, manifest)
   return entry and entry.catalog_json and wezterm.json_parse(entry.catalog_json)
 end
 
+function M.invalidate(command, manifest)
+  wezterm.GLOBAL[key(command, manifest)] = nil
+end
+
 function M.load(command, manifest, callback)
   local cache_key = key(command, manifest)
   local entry = wezterm.GLOBAL[cache_key] or {}

@@ -32,7 +32,7 @@ local function workspace_windows(name)
   return found
 end
 
-function M.prompt_name(win, pane, description, callback)
+function M.prompt_name(win, pane, description, callback, cancelled)
   win:perform_action(
     wezterm.action.PromptInputLine({
       description = description,
@@ -40,6 +40,8 @@ function M.prompt_name(win, pane, description, callback)
         local name = trim(line)
         if name ~= "" then
           callback(inner_win, inner_pane, name)
+        elseif cancelled then
+          cancelled(inner_win)
         end
       end),
     }),
@@ -89,7 +91,7 @@ function M.choose_session(win, pane, title, allow_new, callback, exclude)
   )
 end
 
-function M.confirm(win, pane, title, callback)
+function M.confirm(win, pane, title, callback, cancelled)
   win:perform_action(
     wezterm.action.InputSelector({
       scope = options.selector_scope(),
@@ -98,6 +100,8 @@ function M.confirm(win, pane, title, callback)
       action = wezterm.action_callback(function(inner_win, inner_pane, id)
         if id == "yes" then
           callback(inner_win, inner_pane)
+        elseif cancelled then
+          cancelled(inner_win)
         end
       end),
     }),
@@ -115,8 +119,22 @@ function M.rename(win, old, name)
       return
     end
   end
+  local native_sessions = require("session_tree.native_sessions")
+  if native_sessions.list()[name] then
+    notify(win, name .. " already exists")
+    return
+  end
+  local renamed, err = native_sessions.rename(old, name)
+  if not renamed then
+    notify(win, err)
+    return
+  end
   wezterm.mux.rename_workspace(old, name)
   ui_sessions.rename(old, name)
+  local recovery = options.get().recovery
+  if recovery then
+    recovery.rename(old, name)
+  end
   notify(win, "renamed " .. old .. " to " .. name)
 end
 

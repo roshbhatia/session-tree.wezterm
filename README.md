@@ -3,7 +3,7 @@
 Browse live workspaces, tabs, and panes. Open provider sessions and create sessions when a provider advertises that capability.
 
 Native sessions work without Nix, Python, a project directory, or an agent registry.
-External providers use the bundled Python runner and the `provider/v1` protocol.
+External providers use the bundled Nushell runner and the `provider/v1` protocol.
 
 ## Install
 
@@ -44,16 +44,20 @@ Pane rows show `F` for floating panes, including the agent and attention views.
 Refreshing the tree never creates a float. Closing a float removes its row;
 the next float-based picker creates one only when it opens.
 `!` opens native sessions, including the default workspace and new named sessions without project folders.
+Native session registrations persist when their last terminal closes. Opening a
+saved session starts its shell again; an integrated recovery adapter can restore
+its saved layout. The native provider exposes Rename session and Delete session.
+Delete closes its terminals and removes its saved state. Default remains reserved.
 Provider keys appear in configured order after `!`.
 
 ## Providers
 
-Install Python 3.11 or newer. Point `picker.command` at the bundled runner:
+Install Nushell and GNU Coreutils. Point `picker.command` at the bundled runner:
 
 ```lua
 sessions.apply_to_config(config, {
   picker = {
-    command = { "python3", "/path/to/session-tree.wezterm/scripts/picker-call.py" },
+    command = { "nu", "--no-config-file", "/path/to/session-tree.wezterm/scripts/picker-call.nu" },
     providers = {
       { name = "seshy", key = "$", manifest = "/path/to/seshy/provider.json" },
     },
@@ -65,6 +69,13 @@ Call `apply_to_config` once, combining your options in one table.
 Nix users can install `github:roshbhatia/session-tree.wezterm#runner` and set `picker.command = { "wezterm-picker-call" }`.
 
 A manifest declares `picker.describe`, `picker.list`, `picker.open`, and optionally `picker.create`.
+Optional `picker.rename` and `picker.delete` actions expose management entries.
+Rename receives `input.id` and `input.name`; delete receives `input.id`. Both
+return `{ "kind": "updated", "id": "session-id" }` after the operation succeeds.
+The provider owns validation, persistence, and deletion semantics. Its description
+can declare `persistence: "always"` and a `delete.prompt` explaining the deletion
+scope. The picker confirms deletion before calling the provider and surfaces its
+errors. Providers without these actions expose no management entries.
 Creation appears only when the manifest advertises it. Cancellation sends no request.
 Providers receive a `provider/v1` request on stdin and return correlated event frames followed by one result.
 Open and create return a spawn plan with `cwd`, `command`, `environment`, and optional `label`.
