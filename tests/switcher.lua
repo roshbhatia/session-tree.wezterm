@@ -47,7 +47,7 @@ package.loaded["session_tree.adapters"] = { badges = { name = tostring }, panes 
 package.loaded["session_tree.sessions"] = {}
 package.loaded["session_tree.launcher"] = {
   providers = function()
-    return { { name = "task-queue", key = "&" } }
+    return { { name = "tq", key = "&" } }
   end,
   cancel = function() end,
   prefetch = function() end,
