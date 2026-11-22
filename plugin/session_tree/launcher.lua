@@ -93,6 +93,17 @@ local function report(win, message)
   win:toast_notification("WezTerm", message, nil, 5000)
 end
 
+function M.attach(plan, win, pane)
+  if type(plan) ~= "table" or plan.kind ~= "attach" or not text(plan.domain) or plan.domain == "" then
+    return nil, "Picker action has an invalid domain"
+  end
+  if not wezterm.mux.get_domain(plan.domain) then
+    return nil, "WezTerm domain is unavailable: " .. plan.domain
+  end
+  win:perform_action(wezterm.action.AttachDomain(plan.domain), pane)
+  return true
+end
+
 function M.spawn(plan)
   if type(plan) ~= "table" or plan.kind ~= "spawn" then
     return nil, "Unsupported picker action"
@@ -280,6 +291,13 @@ local function launch(win, pane, provider, capability, name)
   local plan, err = invoke(provider, capability, name)
   if not plan then
     report(win, err)
+    return
+  end
+  if capability == "picker.open" and plan.kind == "attach" then
+    local attached, attach_error = M.attach(plan, win, pane)
+    if not attached then
+      report(win, attach_error)
+    end
     return
   end
   local spawn, spawn_error = M.spawn(plan)

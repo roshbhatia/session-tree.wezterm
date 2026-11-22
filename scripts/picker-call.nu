@@ -25,7 +25,11 @@ export def call [manifest_path: path, capability: string, item?: string] {
         | get -o argv
         | default []
     )
-    let result = ($request | to json -r) + "\n" | ^timeout 5s ...$argv | complete
+    let deadline = $manifest.actions | get $capability | get timeout? | default '5s'
+    if $deadline !~ '^([1-9]|[12][0-9]|30)s$' {
+        error make {msg: 'provider action timeout must be between 1s and 30s'}
+    }
+    let result = ($request | to json -r) + "\n" | ^timeout $deadline ...$argv | complete
     if $result.exit_code != 0 {
         error make {
             msg: (
@@ -91,9 +95,7 @@ def main [--catalog, ...arguments: string] {
                 ok: true
                 catalog: (catalog $manifest)
             }
-        } catch {|failure|
-            {ok: false, error: $failure.msg}
-        }
+        } catch {|failure| {ok: false, error: $failure.msg} }
         let temporary = ^mktemp ($destination + '.XXXXXX') | str trim
         try {
             $result | to json -r | save --force $temporary

@@ -102,6 +102,16 @@ assert(wezterm.GLOBAL.workspace_slots.new == 3 and wezterm.GLOBAL.workspace_slot
 assert(sessions.last_active("new") == 42 and sessions.last_active("old") == nil, "rename lost the recency")
 
 local launcher = require("session_tree.launcher")
+local attached
+local fake_window = {
+  perform_action = function(_, action)
+    attached = tostring(action)
+  end,
+}
+assert(launcher.attach({ kind = "attach", domain = "local" }, fake_window, pane))
+assert(attached:find("AttachDomain", 1, true) and attached:find("local", 1, true))
+local _, attachment_error = launcher.attach({ kind = "attach", domain = "missing-test-domain" }, fake_window, pane)
+assert(attachment_error and attachment_error:find("missing-test-domain", 1, true))
 local manifest = os.getenv("HOME") .. "/creates.json"
 local file = assert(io.open(manifest, "w"))
 file:write('{"actions":{"picker.create":{},"picker.list":{}}}')

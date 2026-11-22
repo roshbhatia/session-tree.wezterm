@@ -79,11 +79,12 @@ errors. Providers without these actions expose no management entries.
 Creation appears only when the manifest advertises it. Cancellation sends no request.
 Providers receive a `provider/v1` request on stdin and return correlated event frames followed by one result.
 Open and create return a spawn plan with `cwd`, `command`, `environment`, and optional `label`.
+Open can also return `{ "kind": "attach", "domain": "configured-domain" }` to attach an existing mux domain.
 Commands are argument arrays. Empty commands use the configured WezTerm shell.
 Set `shell` to the shell argument array used by interactive creators.
 
 Discovery runs in the background. Concurrent requests share one job; fresh cached results open immediately.
-A late response cannot replace a cancelled picker. Each provider call has a five-second timeout.
+A late response cannot replace a cancelled picker. Provider calls default to five seconds. An action can declare a timeout from `1s` through `30s`.
 
 Seshy and Tether own their adapters in their `extras/wezterm` directories.
 Zmx and zoxide adapters remain available from sysinit.wezterm.
