@@ -42,7 +42,7 @@ package.loaded["session_tree.options"] = {
     return "Auto"
   end,
   get = function()
-    return { picker = { workspace_slots = { ["task-queue"] = 99 } } }
+    return { picker = { workspace_slots = { ["task-queue"] = 99 }, hidden_workspaces = { ["task-queue"] = true } } }
   end,
 }
 package.loaded["session_tree.actions"] = {

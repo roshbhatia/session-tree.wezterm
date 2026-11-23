@@ -1,6 +1,7 @@
 local ui_badges = require("session_tree.adapters").badges
 local ui_format = require("session_tree.adapters").format
 local ui_panes = require("session_tree.adapters").panes
+local options = require("session_tree.options")
 local M = {}
 
 function M.new(ctx)
@@ -95,18 +96,21 @@ function M.new(ctx)
       choices[#choices + 1] = { id = id, label = label }
     end
     filter = filter or "all"
+    local hidden = (options.get().picker or {}).hidden_workspaces or {}
 
     if filter == "blocked" or filter == "agents" then
       local list = {}
       if filter == "blocked" then
         for _, rec in ipairs(tree.attention) do
-          list[#list + 1] = rec
+          if not hidden[rec.workspace] then
+            list[#list + 1] = rec
+          end
         end
       else
         for _, ws in ipairs(tree.workspaces) do
           for _, tnode in ipairs(ws.tabs) do
             for _, rec in ipairs(tnode.panes) do
-              if rec.status then
+              if rec.status and not hidden[ws.name] then
                 list[#list + 1] = rec
               end
             end
@@ -128,7 +132,7 @@ function M.new(ctx)
     if filter == "sessions" then
       local live = {}
       for _, ws in ipairs(tree.workspaces) do
-        if not ws.dormant then
+        if not ws.dormant and not hidden[ws.name] then
           live[#live + 1] = ws
         end
       end
@@ -156,7 +160,7 @@ function M.new(ctx)
 
     local live_sorted = {}
     for _, ws in ipairs(tree.workspaces) do
-      if not ws.dormant then
+      if not ws.dormant and not hidden[ws.name] then
         live_sorted[#live_sorted + 1] = ws
       end
     end

@@ -107,7 +107,17 @@ end
 print("Stable session indexes, rename, host interpolation, gaps, and overflow passed")
 
 local options = require("session_tree.options")
-options.configure({ picker = { workspace_slots = { ["task-queue"] = 99, reserved = 3 } } })
+options.configure({
+  picker = { workspace_slots = { ["task-queue"] = 99, reserved = 3 }, hidden_workspaces = { ["task-queue"] = true } },
+})
+local queued_pane = { workspace = "task-queue", pane_id = 42, status = "waiting" }
+tree.workspaces[#tree.workspaces + 1] = { name = "task-queue", index = 99, tabs = { { panes = { queued_pane } } } }
+tree.attention = { queued_pane }
+for _, filter in ipairs({ "all", "sessions", "agents", "blocked" }) do
+  local targets = {}
+  rows(tree, targets, filter, {})
+  assert(not targets["ws:task-queue"] and not targets["pane:42"], "hidden queue appeared in " .. filter)
+end
 wezterm.GLOBAL.workspace_slots = { ["task-queue"] = 2, editing = 3 }
 windows = { window(1, "task-queue"), window(2, "editing") }
 assert(table.concat(sessions.active_names(), ",") == "editing,task-queue")

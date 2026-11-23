@@ -34,6 +34,9 @@ Single-digit workspace indexes display with a leading zero.
 Set `picker.workspace_slots = { ["task-queue"] = 99 }` to reserve an index
 for a named workspace. Automatic allocation skips reserved indexes even while
 those workspaces are closed.
+Set `picker.hidden_workspaces = { ["task-queue"] = true }` to omit a
+workspace and its panes from the session tree. Its reserved palette action
+remains available while the workspace is live.
 
 The tree uses `j/k` to move, `/` to filter, Enter to open, `x` to close with confirmation, `Shift+x` to close immediately, and Escape to cancel.
 Provider and destination selectors also start with `j/k` navigation and `/` search.
