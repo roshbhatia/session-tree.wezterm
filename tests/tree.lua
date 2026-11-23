@@ -137,4 +137,23 @@ infos[2] = nil
 tree = model.build({})
 assert(#tree.workspaces[1].tabs[1].panes == 1 and #tree.attention == 0)
 assert(spawned == 0, "refreshing the tree eagerly created a float")
+local numbered_tree = {
+  workspaces = { { name = "task-queue", index = 99, tabs = {}, domain = false } },
+}
+require("session_tree.options").configure({
+  picker = { hidden_workspaces = { ["task-queue"] = true } },
+})
+for count = 1, 11 do
+  numbered_tree.workspaces[#numbered_tree.workspaces + 1] =
+    { name = "session-" .. count, index = count, tabs = {}, domain = false }
+  if count >= 10 then
+    for _, filter in ipairs({ "all", "sessions" }) do
+      local choices = rows(numbered_tree, {}, filter, colors)
+      assert(#choices == count)
+      local first = label(choices, "ws:session-1")
+      assert(first:find(count == 10 and "[1]" or "[01]", 1, true), first)
+    end
+  end
+end
+
 print("floating tree rows and lazy discovery tests passed")

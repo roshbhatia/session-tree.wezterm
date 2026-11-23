@@ -90,8 +90,8 @@ for _, filter in ipairs({ "all", "sessions" }) do
     "tree did not follow session indexes"
   )
   assert(
-    choices[1].label:find("[01]", 1, true)
-      and choices[2].label:find("[02]", 1, true)
+    choices[1].label:find("[1]", 1, true)
+      and choices[2].label:find("[2]", 1, true)
       and choices[2].label:find("@arrakis", 1, true)
       and choices[3].label:find("[13]", 1, true),
     "remote label lost its index or host"

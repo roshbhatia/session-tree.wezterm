@@ -128,20 +128,23 @@ function M.new(ctx)
       return choices
     end
 
-    if filter == "sessions" then
-      local live = {}
-      for _, ws in ipairs(tree.workspaces) do
-        if not ws.dormant and options.workspace_visible(ws.name) then
-          live[#live + 1] = ws
-        end
+    local live = {}
+    for _, ws in ipairs(tree.workspaces) do
+      if not ws.dormant and options.workspace_visible(ws.name) then
+        live[#live + 1] = ws
       end
-      table.sort(live, function(a, b)
-        return a.index < b.index
-      end)
+    end
+    table.sort(live, function(a, b)
+      return a.index < b.index
+    end)
+
+    local ordinal = #live > 10 and "[%02d] " or "[%d] "
+
+    if filter == "sessions" then
       for _, ws in ipairs(live) do
         local sc = ui_format.status_color(ws.status, colors)
         local r = ctx.ribbon.new("ws")
-        r:append(nil, colors.chrome, string.format("[%02d] ", ws.index))
+        r:append(nil, colors.chrome, ordinal:format(ws.index))
         r:append(nil, sc or colors.ws_live, ctx.icons.session .. " ")
         append_domain(r, colors, ws.domain, ws.stale)
         r:append(nil, colors.name, ws.display_name or ws.name, "Bold")
@@ -157,20 +160,10 @@ function M.new(ctx)
       return choices
     end
 
-    local live_sorted = {}
-    for _, ws in ipairs(tree.workspaces) do
-      if not ws.dormant and options.workspace_visible(ws.name) then
-        live_sorted[#live_sorted + 1] = ws
-      end
-    end
-    table.sort(live_sorted, function(a, b)
-      return a.index < b.index
-    end)
-
-    for _, ws in ipairs(live_sorted) do
+    for _, ws in ipairs(live) do
       local sc = ui_format.status_color(ws.status, colors)
       local ws_r = ctx.ribbon.new("ws")
-      ws_r:append(nil, colors.chrome, string.format("[%02d] ", ws.index))
+      ws_r:append(nil, colors.chrome, ordinal:format(ws.index))
       ws_r:append(nil, sc or colors.ws_live, ctx.icons.session .. " ")
       append_domain(ws_r, colors, ws.domain, ws.stale)
       ws_r:append(nil, colors.name, ws.display_name or ws.name, { "Bold", "Single" })
