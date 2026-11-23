@@ -1,0 +1,23 @@
+plugin/session_tree/switcher.lua
+  s_a4a3eea4720821::t_f21c054af1fefb 657-684,687-690
+README.md
+  s_a4a3eea4720821::t_f21c054af1fefb 23-25
+tests/switcher.lua
+  s_a4a3eea4720821::t_f21c054af1fefb 2-3,20-22,45-50,54-58,61-64,119-134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c25233f7c4de54900b86523f9d77e8d3db02939b",
+  "prompts": {},
+  "sessions": {
+    "s_a4a3eea4720821": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f4ef-68fa-7c11-b609-3f16bf1d9bf7",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Roshan Bhatia <rshnbhatia@gmail.com>"
+    }
+  }
+}
