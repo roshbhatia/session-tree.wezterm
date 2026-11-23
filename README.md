@@ -20,6 +20,9 @@ return config
 The binding is optional. `sessions.open(filter)` and `sessions.provider(key)` return actions for your own keys.
 Filters are `all`, `sessions`, `agents`, and `blocked`. Agent filters require a status source.
 The command palette also exposes the tree, close picker, and session navigation.
+It includes each tree filter, a direct action for each live workspace with a
+reserved index, and each provider. A provider can set `palette_title` to name
+its command.
 
 Sessions follow their stable numeric index, matching the session chips and
 relative navigation. Existing indexes survive renames and host-label changes.

@@ -654,10 +654,40 @@ function M.setup(config, wm, ctx)
         action = wezterm.action.DetachDomain("CurrentPaneDomain"),
       },
     }
+    for _, view in ipairs({
+      { name = "Sessions only", filter = "sessions" },
+      { name = "Agent panes", filter = "agents" },
+      { name = "Blocked agents", filter = "blocked" },
+    }) do
+      entries[#entries + 1] = {
+        brief = "Session tree: " .. view.name,
+        action = wezterm.action_callback(function(win, pane)
+          open_session_tree(win, pane, view.filter)
+        end),
+      }
+    end
+    local reserved = (options.get().picker or {}).workspace_slots or {}
+    for _, name in ipairs(ui_sessions.active_names()) do
+      if reserved[name] then
+        entries[#entries + 1] = {
+          brief = "Session: open " .. name,
+          action = wezterm.action_callback(function(win, pane)
+            for _, live in ipairs(ui_sessions.active_names()) do
+              if name == live then
+                ui_actions.switch_to_workspace(win, pane, name)
+                return
+              end
+            end
+          end),
+        }
+      end
+    end
     for _, provider in ipairs(launcher.providers()) do
       entries[#entries + 1] = {
-        brief = (launcher.can_create(provider) and "Session: new or open from " or "Session: open from ")
-          .. provider.name,
+        brief = provider.palette_title
+          or (
+            (launcher.can_create(provider) and "Session: new or open from " or "Session: open from ") .. provider.name
+          ),
         action = wezterm.action_callback(function(win, pane)
           launcher.open(win, pane, provider.key)
         end),

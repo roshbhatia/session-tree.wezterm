@@ -1,5 +1,6 @@
 package.path = assert(arg[1]) .. "/?.lua;" .. package.path
-local commands, deferred, displayed = {}, {}, {}
+local commands, deferred, displayed, handlers = {}, {}, {}, {}
+local live_names, opened_provider, switched_workspace = { "default", "task-queue" }
 local active_table
 local action = setmetatable({}, {
   __index = function(self, name)
@@ -16,7 +17,9 @@ local wezterm = {
   action_callback = function(callback)
     return callback
   end,
-  on = function() end,
+  on = function(name, handler)
+    handlers[name] = handler
+  end,
   time = {
     call_after = function(_, callback)
       deferred[#deferred + 1] = callback
@@ -39,15 +42,26 @@ package.loaded["session_tree.options"] = {
     return "Auto"
   end,
   get = function()
-    return {}
+    return { picker = { workspace_slots = { ["task-queue"] = 99 } } }
   end,
 }
-package.loaded["session_tree.actions"] = {}
+package.loaded["session_tree.actions"] = {
+  switch_to_workspace = function(_, _, name)
+    switched_workspace = name
+  end,
+}
 package.loaded["session_tree.adapters"] = { badges = { name = tostring }, panes = {} }
-package.loaded["session_tree.sessions"] = {}
+package.loaded["session_tree.sessions"] = {
+  active_names = function()
+    return live_names
+  end,
+}
 package.loaded["session_tree.launcher"] = {
   providers = function()
-    return { { name = "task-queue", key = "&" } }
+    return { { name = "tq", key = "&", palette_title = "Queue: browse attempts" } }
+  end,
+  open = function(_, _, key)
+    opened_provider = key
   end,
   cancel = function() end,
   prefetch = function() end,
@@ -102,6 +116,22 @@ switcher.setup(config, nil, {
   end,
 })
 local keys = {}
+local palette = {}
+for _, entry in ipairs(handlers["augment-command-palette"]()) do
+  palette[entry.brief] = entry.action
+end
+assert(
+  palette["Session tree: Sessions only"]
+    and palette["Session tree: Agent panes"]
+    and palette["Session tree: Blocked agents"]
+)
+palette["Queue: browse attempts"](window, pane)
+assert(opened_provider == "&", "queue command did not open the configured provider")
+palette["Session: open task-queue"](window, pane)
+assert(switched_workspace == "task-queue")
+live_names, switched_workspace = { "default" }, nil
+palette["Session: open task-queue"](window, pane)
+assert(not switched_workspace, "stale palette command reopened a closed workspace")
 local shifted = {}
 for _, binding in ipairs(config.key_tables.session_tree_selector) do
   keys[binding.key] = binding
