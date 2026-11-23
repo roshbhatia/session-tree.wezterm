@@ -1,0 +1,32 @@
+tests/sessions.lua
+  s_a4a3eea4720821::t_1b8ac1f80b3798 93-96,110,114,123
+  s_a4a3eea4720821::t_66177ba4c4d544 108-109,111-113,115,120-122,124
+  s_a4a3eea4720821::t_09338ed11d8b89 116-119
+plugin/session_tree/sessions.lua
+  s_a4a3eea4720821::t_66177ba4c4d544 2,48-53
+  s_a4a3eea4720821::t_09338ed11d8b89 55-61
+README.md
+  s_a4a3eea4720821::t_66177ba4c4d544 32-33
+  s_a4a3eea4720821::t_1b8ac1f80b3798 30-31
+plugin/session_tree/tree_rows.lua
+  s_a4a3eea4720821::t_1b8ac1f80b3798 141,170
+plugin/session_tree/options.lua
+  s_a4a3eea4720821::t_66177ba4c4d544 15-20,25-27
+  s_a4a3eea4720821::t_09338ed11d8b89 21-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b7484e82fc165e9efb0afcc89f5f9647f2b4c6aa",
+  "prompts": {},
+  "sessions": {
+    "s_a4a3eea4720821": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f4ef-68fa-7c11-b609-3f16bf1d9bf7",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Roshan Bhatia <rshnbhatia@gmail.com>"
+    }
+  }
+}
