@@ -131,4 +131,15 @@ table.remove(windows, 1)
 assert(not sessions.slots()["task-queue"], "kept a closed workspace in the live index")
 windows[#windows + 1] = window(4, "task-queue")
 assert(sessions.slots()["task-queue"] == 99, "reopening lost the reserved index")
+local actions = require("session_tree.actions")
+local switched
+actions.switch_to_workspace = function(_, _, name)
+  switched = name
+end
+actions.step_session({
+  active_workspace = function()
+    return "new"
+  end,
+}, nil, 1)
+assert(switched == "default", "relative navigation entered the hidden queue workspace")
 print("Reserved workspace indexes survive allocation and reopening")

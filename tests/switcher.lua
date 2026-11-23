@@ -1,6 +1,6 @@
 package.path = assert(arg[1]) .. "/?.lua;" .. package.path
 local commands, deferred, displayed, handlers = {}, {}, {}, {}
-local live_names, opened_provider, switched_workspace = { "default", "task-queue" }
+local live_names, opened_provider, switched_workspace = { "default", "review", "task-queue" }
 local active_table
 local action = setmetatable({}, {
   __index = function(self, name)
@@ -42,7 +42,10 @@ package.loaded["session_tree.options"] = {
     return "Auto"
   end,
   get = function()
-    return { picker = { workspace_slots = { ["task-queue"] = 99 }, hidden_workspaces = { ["task-queue"] = true } } }
+    return { picker = { workspace_slots = { ["task-queue"] = 99, review = 8 } } }
+  end,
+  workspace_visible = function(name)
+    return name ~= "task-queue"
   end,
 }
 package.loaded["session_tree.actions"] = {
@@ -57,8 +60,15 @@ package.loaded["session_tree.sessions"] = {
   end,
 }
 package.loaded["session_tree.launcher"] = {
-  providers = function()
-    return { { name = "tq", key = "&", palette_title = "Queue: browse attempts" } }
+  providers = function(require_shortcut)
+    local providers = { { name = "seshy", key = "$" } }
+    if not require_shortcut then
+      providers[#providers + 1] = { name = "tq", palette_title = "Queue: browse attempts" }
+    end
+    return providers
+  end,
+  can_create = function()
+    return false
   end,
   open = function(_, _, key)
     opened_provider = key
@@ -126,11 +136,13 @@ assert(
     and palette["Session tree: Blocked agents"]
 )
 palette["Queue: browse attempts"](window, pane)
-assert(opened_provider == "&", "queue command did not open the configured provider")
-palette["Session: open task-queue"](window, pane)
-assert(switched_workspace == "task-queue")
+assert(opened_provider == "tq", "queue command did not open the configured provider")
+assert(not palette["Session: open task-queue"], "hidden workspace gained a session shortcut")
+assert(not switcher.session_tree_description():find("tq", 1, true), "unbound provider appeared in the switcher")
+palette["Session: open review"](window, pane)
+assert(switched_workspace == "review")
 live_names, switched_workspace = { "default" }, nil
-palette["Session: open task-queue"](window, pane)
+palette["Session: open review"](window, pane)
 assert(not switched_workspace, "stale palette command reopened a closed workspace")
 local shifted = {}
 for _, binding in ipairs(config.key_tables.session_tree_selector) do
@@ -140,7 +152,7 @@ for _, binding in ipairs(config.key_tables.session_tree_selector) do
   end
 end
 assert(keys.x and keys.X, "both close bindings must be registered")
-assert(shifted.X and shifted.M and shifted["&"], "physical shifted shortcuts must retain their modifier")
+assert(shifted.X and shifted.M and shifted["$"], "physical shifted shortcuts must retain their modifier")
 local function select(key)
   active_table = nil
   displayed = {}

@@ -67,7 +67,7 @@ end
 
 function M.session_tree_description()
   local providers = {}
-  for _, provider in ipairs(launcher.providers()) do
+  for _, provider in ipairs(launcher.providers(true)) do
     providers[#providers + 1] = provider.key .. " " .. provider.name
   end
   local actions = {}
@@ -138,7 +138,7 @@ function M.setup(config, wm, ctx)
   for _, action in ipairs(ROW_ACTIONS) do
     SESSION_TREE_ACTIONS[#SESSION_TREE_ACTIONS + 1] = action
   end
-  for _, provider in ipairs(launcher.providers()) do
+  for _, provider in ipairs(launcher.providers(true)) do
     SESSION_TREE_ACTIONS[#SESSION_TREE_ACTIONS + 1] = {
       id = "provider:" .. provider.key,
       key = provider.key,
@@ -149,7 +149,9 @@ function M.setup(config, wm, ctx)
     wm.get_choices = function()
       local choices = {}
       for _, name in ipairs(ui_sessions.active_names()) do
-        choices[#choices + 1] = { name = name, label = name }
+        if options.workspace_visible(name) then
+          choices[#choices + 1] = { name = name, label = name }
+        end
       end
       return choices
     end
@@ -597,7 +599,7 @@ function M.setup(config, wm, ctx)
             return (ui_sessions.last_active(a) or 0) > (ui_sessions.last_active(b) or 0)
           end)
           for _, name in ipairs(names) do
-            if name ~= win:active_workspace() then
+            if name ~= win:active_workspace() and options.workspace_visible(name) then
               ui_actions.switch_to_workspace(win, pane, name)
               return
             end
@@ -668,7 +670,7 @@ function M.setup(config, wm, ctx)
     end
     local reserved = (options.get().picker or {}).workspace_slots or {}
     for _, name in ipairs(ui_sessions.active_names()) do
-      if reserved[name] then
+      if reserved[name] and options.workspace_visible(name) then
         entries[#entries + 1] = {
           brief = "Session: open " .. name,
           action = wezterm.action_callback(function(win, pane)
@@ -689,7 +691,7 @@ function M.setup(config, wm, ctx)
             (launcher.can_create(provider) and "Session: new or open from " or "Session: open from ") .. provider.name
           ),
         action = wezterm.action_callback(function(win, pane)
-          launcher.open(win, pane, provider.key)
+          launcher.open(win, pane, provider.key or provider.name)
         end),
       }
     end

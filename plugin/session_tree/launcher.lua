@@ -44,10 +44,12 @@ local function settings()
   return options.get().picker or {}
 end
 
-function M.providers()
+function M.providers(require_shortcut)
   local providers = { { name = "wezterm", key = "!", native = true } }
   for _, provider in ipairs(settings().providers or {}) do
-    providers[#providers + 1] = provider
+    if not require_shortcut or provider.key then
+      providers[#providers + 1] = provider
+    end
   end
   return providers
 end
@@ -70,7 +72,9 @@ end
 
 function M.prefetch()
   for _, provider in ipairs(settings().providers or {}) do
-    catalog.load(settings().command or {}, provider.manifest)
+    if provider.key then
+      catalog.load(settings().command or {}, provider.manifest)
+    end
   end
 end
 
@@ -258,7 +262,7 @@ local function manage(win, pane, provider, capability, id, name)
     end
     catalog.invalidate(settings().command or {}, provider.manifest)
   end
-  M.open(win, pane, provider.key)
+  M.open(win, pane, provider.key or provider.name)
 end
 
 local function launch(win, pane, provider, capability, name)
@@ -313,16 +317,16 @@ local function launch(win, pane, provider, capability, name)
   actions.switch_to_workspace(win, pane, tostring(plan.label or name), spawn)
 end
 
-function M.open(win, pane, key, before_show)
+function M.open(win, pane, target_provider, before_show)
   local provider
   for _, candidate in ipairs(M.providers()) do
-    if candidate.key == key then
+    if target_provider and (candidate.key == target_provider or candidate.name == target_provider) then
       provider = candidate
       break
     end
   end
   if not provider then
-    report(win, "No provider registered for " .. tostring(key))
+    report(win, "No provider registered for " .. tostring(target_provider))
     return
   end
   local popup = require("session_tree.popup")

@@ -1,5 +1,6 @@
 local wezterm = require("wezterm")
 local ui_sessions = require("session_tree.sessions")
+local options = require("session_tree.options")
 
 local M = {}
 local refresh_handler
@@ -81,17 +82,20 @@ end
 -- Stepping by slot rather than by workspace name walks the same order the
 -- session chips are drawn in, and wraps at both ends.
 function M.step_session(win, pane, step)
+  local slots = ui_sessions.slots()
+  local here = slots[win:active_workspace()]
   local taken = {}
-  for _, slot in pairs(ui_sessions.slots()) do
-    taken[#taken + 1] = slot
+  for name, slot in pairs(slots) do
+    if options.workspace_visible(name) then
+      taken[#taken + 1] = slot
+    end
   end
   table.sort(taken)
-  if #taken < 2 then
+  if #taken == 0 or (#taken == 1 and taken[1] == here) then
     return
   end
 
-  local here = ui_sessions.slots()[win:active_workspace()]
-  local at = 1
+  local at = step > 0 and 0 or 1
   for index, slot in ipairs(taken) do
     if slot == here then
       at = index

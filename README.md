@@ -17,12 +17,13 @@ sessions.apply_to_config(config, {
 return config
 ```
 
-The binding is optional. `sessions.open(filter)` and `sessions.provider(key)` return actions for your own keys.
+The binding is optional. `sessions.open(filter)` and `sessions.provider(key_or_name)` return actions for your own keys.
 Filters are `all`, `sessions`, `agents`, and `blocked`. Agent filters require a status source.
 The command palette also exposes the tree, close picker, and session navigation.
 It includes each tree filter, a direct action for each live workspace with a
-reserved index, and each provider. A provider can set `palette_title` to name
-its command.
+visible reserved index, and each provider. Omit a provider's `key` to keep its
+action in the command palette without assigning it a session-tree shortcut.
+Set `palette_title` to name its command.
 
 Sessions follow their stable numeric index, matching the session chips and
 relative navigation. Existing indexes survive renames and host-label changes.
@@ -35,8 +36,7 @@ Set `picker.workspace_slots = { ["task-queue"] = 99 }` to reserve an index
 for a named workspace. Automatic allocation skips reserved indexes even while
 those workspaces are closed.
 Set `picker.hidden_workspaces = { ["task-queue"] = true }` to omit a
-workspace and its panes from the session tree. Its reserved palette action
-remains available while the workspace is live.
+workspace and its panes from the session tree and relative session navigation.
 
 The tree uses `j/k` to move, `/` to filter, Enter to open, `x` to close with confirmation, `Shift+x` to close immediately, and Escape to cancel.
 Provider and destination selectors also start with `j/k` navigation and `/` search.

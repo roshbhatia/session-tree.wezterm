@@ -4,6 +4,10 @@ local scopes = { auto = "Auto", pane = "Pane", window = "Window", float = "Pane"
 function M.get()
   return options
 end
+function M.workspace_visible(name)
+  local hidden = (options.picker or {}).hidden_workspaces or {}
+  return not hidden[name]
+end
 function M.configure(value)
   options = value or {}
   M.selector_scope()
