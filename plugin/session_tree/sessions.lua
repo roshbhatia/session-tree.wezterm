@@ -1,4 +1,5 @@
 local wezterm = require("wezterm")
+local options = require("session_tree.options")
 
 local M = {}
 M.DEFAULT_WORKSPACE = "default"
@@ -44,8 +45,20 @@ local function compute_slots(names)
 
   local slots, taken = {}, {}
   taken[M.DEFAULT_SLOT] = true
+  for name, slot in pairs((options.get().picker or {}).workspace_slots or {}) do
+    taken[slot] = true
+    if present[name] then
+      slots[name] = slot
+    end
+  end
   for name, slot in pairs(prev) do
-    if present[name] and name ~= M.DEFAULT_WORKSPACE and type(slot) == "number" and not taken[slot] then
+    if
+      present[name]
+      and name ~= M.DEFAULT_WORKSPACE
+      and not slots[name]
+      and type(slot) == "number"
+      and not taken[slot]
+    then
       slots[name] = slot
       taken[slot] = true
     end

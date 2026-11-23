@@ -27,6 +27,10 @@ New sessions take the first free index in window-creation order; closing a
 session does not renumber the others. Default keeps index 1. Indexes continue
 past 9, while the direct digit shortcuts remain 1–9. Host tags describe the
 panes' current domains and do not determine session order.
+Single-digit workspace indexes display with a leading zero.
+Set `picker.workspace_slots = { ["task-queue"] = 99 }` to reserve an index
+for a named workspace. Automatic allocation skips reserved indexes even while
+those workspaces are closed.
 
 The tree uses `j/k` to move, `/` to filter, Enter to open, `x` to close with confirmation, `Shift+x` to close immediately, and Escape to cancel.
 Provider and destination selectors also start with `j/k` navigation and `/` search.

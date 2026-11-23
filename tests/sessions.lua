@@ -90,7 +90,10 @@ for _, filter in ipairs({ "all", "sessions" }) do
     "tree did not follow session indexes"
   )
   assert(
-    choices[2].label:find("[2]", 1, true) and choices[2].label:find("@arrakis", 1, true),
+    choices[1].label:find("[01]", 1, true)
+      and choices[2].label:find("[02]", 1, true)
+      and choices[2].label:find("@arrakis", 1, true)
+      and choices[3].label:find("[13]", 1, true),
     "remote label lost its index or host"
   )
   tree.workspaces[2].domain = "another-host"
@@ -102,3 +105,20 @@ for _, filter in ipairs({ "all", "sessions" }) do
   tree.workspaces[2].domain = "arrakis"
 end
 print("Stable session indexes, rename, host interpolation, gaps, and overflow passed")
+
+local options = require("session_tree.options")
+options.configure({ picker = { workspace_slots = { ["task-queue"] = 99, reserved = 3 } } })
+wezterm.GLOBAL.workspace_slots = { ["task-queue"] = 2, editing = 3 }
+windows = { window(1, "task-queue"), window(2, "editing") }
+assert(table.concat(sessions.active_names(), ",") == "editing,task-queue")
+assert(sessions.slots()["task-queue"] == 99 and sessions.slots().editing == 2)
+windows[#windows + 1] = window(3, "new")
+assert(
+  sessions.slots().new == 4 and not sessions.slots().reserved,
+  "allocated an index reserved by an absent workspace"
+)
+table.remove(windows, 1)
+assert(not sessions.slots()["task-queue"], "kept a closed workspace in the live index")
+windows[#windows + 1] = window(4, "task-queue")
+assert(sessions.slots()["task-queue"] == 99, "reopening lost the reserved index")
+print("Reserved workspace indexes survive allocation and reopening")
